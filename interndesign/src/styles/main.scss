@@ -1,0 +1,309 @@
+﻿@import './_variables.scss'; 
+
+body {
+    height: 100vh;
+    width: 100vw;
+    font-family: $fontFamily;
+    background-color: #FFFFFF;
+    text-transform: capitalize;
+    overflow-x: hidden; /* يمنع السكروول الأفقي */
+    overflow-y: auto; /* يسمح بالسكروول العمودي */
+}
+
+.sidebar {
+    background-color: $white;
+    position: fixed;
+    top: 0;
+    left: 0;
+    padding: 2rem 1.5rem; // قللناها شوي عشان المحتوى يقرب من الشمال
+    width: 15rem;
+    height: 100vh;
+    transition: 0.5s all;
+    overflow: visible;
+
+    .logoContainer {
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+
+        .logo {
+            width: 70px;
+            height: auto;
+            margin-top: 10px;
+        }
+
+        h2.title {
+            font-size: 31.42px;
+            color: $green;
+            padding-left: 0;
+            margin-left: 0;
+        }
+    }
+
+    .burgerContainer {
+        background-color: $green;
+        position: absolute;
+        right: calc(-35px / 2);
+        top: calc(9rem / 1.15);
+        width: 35px;
+        height: 35px;
+        border-radius: 2rem;
+        z-index: 1000;
+        overflow: visible;
+
+        .burgerTrigger {
+            width: 35px;
+            height: 35px;
+            background-color: red;
+            cursor: pointer;
+            z-index: 6;
+            opacity: 0;
+            position: relative;
+        }
+
+        .burgerMenu {
+            background-color: $green;
+            position: relative;
+            z-index: 1;
+            width: 20px;
+            height: 3px;
+            border-radius: 2rem;
+            bottom: calc(35px / 2);
+            left: 0.45rem;
+            transition: 0.5s all;
+
+            &::after {
+                content: "";
+                background-color: $white;
+                position: absolute;
+                width: 20px;
+                height: 3px;
+                border-radius: 2rem;
+                top: 0.4rem;
+                transform: translateY(-0.4rem) rotate(45deg);
+                transition: 0.5s all;
+            }
+
+            &::before {
+                content: "";
+                background-color: $white;
+                position: absolute;
+                width: 20px;
+                height: 3px;
+                border-radius: 2rem;
+                top: -0.4rem;
+                transform: translateY(0.4rem) rotate(-45deg);
+                transition: 0.5s all;
+            }
+        }
+    }
+
+    .burgerContainer::after {
+        content: "";
+        position: absolute;
+        right: 35px;
+        top: calc(35px / 2);
+        z-index: 0;
+        width: calc(6rem + 15rem);
+        background-color: $lightGrey;
+        height: 2px;
+        transition: 0.5s all;
+    }
+
+    .profileContainer {
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        padding: 3rem 0 0 0;
+
+        .profileCircle {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: $green;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 16px;
+            margin-right: 10px;
+            flex-shrink: 0;
+        }
+
+        .profileContents {
+            padding-left: 0;
+
+            p.name {
+                margin: 0;
+                font-size: 16.7px;
+                color: $darkGrey;
+                font-weight: $heavyFont;
+            }
+
+            p {
+                margin: 0;
+                font-size: 13.9px;
+                color: $darkGrey;
+                text-transform: lowercase;
+            }
+        }
+    }
+
+    .contentsContainer {
+        margin-top: 2rem;
+
+        ul {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            justify-content: flex-start;
+            list-style: none;
+            padding: 0;
+            margin: 0;
+
+            li {
+                display: flex;
+                align-items: center;
+                justify-content: flex-start;
+                width: 100%;
+                margin: 0.75rem 0;
+                padding: 0.75rem 0;
+                border-radius: 1rem;
+                cursor: pointer;
+                color: $darkGrey;
+                font-size: 20px;
+                transition: 0.25s;
+
+                svg {
+                    margin-right: 10px; // 🟢 Adds spacing between icon and text
+                    flex-shrink: 0;
+                }
+
+                span {
+                    transition: 0.3s;
+                }
+
+                &.active {
+                    background-color: $veryLightGreen;
+                    color: $green;
+                }
+
+                &:hover {
+                    background-color: $lightGrey;
+                }
+            }
+        }
+    }
+}
+
+// COLLAPSED SIDEBAR
+.sidebar.active {
+    width: 4.5rem;
+    transition: 0.5s all;
+
+    .logoContainer.active {
+        h2.title {
+            opacity: 0;
+        }
+    }
+
+    .burgerContainer.active {
+        .burgerMenu {
+            background-color: $white;
+        }
+
+        .burgerMenu::before,
+        .burgerMenu::after {
+            transform: rotate(0deg);
+        }
+    }
+
+    .profileContainer {
+        .profileContents {
+            opacity: 0;
+        }
+
+        .profileCircle {
+            flex-shrink: 0;
+        }
+    }
+
+    .contentsContainer {
+        ul {
+            li {
+                span {
+                    opacity: 0;
+                    width: 0;
+                    overflow: hidden;
+                    display: inline-block;
+                    transition: opacity 0.3s ease, width 0.3s ease;
+                }
+            }
+        }
+    }
+}
+// Existing styles...
+
+
+// Mobile responsiveness
+@media screen and (max-width: 768px) {
+    .sidebar {
+        width: 4.5rem;
+        padding: 1rem;
+
+        .logoContainer {
+            h2.title {
+                opacity: 0;
+            }
+        }
+
+        .profileContainer {
+            .profileContents {
+                opacity: 0;
+            }
+        }
+
+        .contentsContainer {
+            ul {
+                li {
+                    span {
+                        opacity: 0;
+                        width: 0;
+                        overflow: hidden;
+                    }
+                }
+            }
+        }
+    }
+
+    // When sidebar is toggled open on mobile
+    .sidebar:not(.active) {
+        width: 15rem;
+        z-index: 1000;
+        box-shadow: 5px 0 15px rgba(0, 0, 0, 0.1);
+
+        .logoContainer {
+            h2.title {
+                opacity: 1;
+            }
+        }
+
+        .profileContainer {
+            .profileContents {
+                opacity: 1;
+            }
+        }
+
+        .contentsContainer {
+            ul {
+                li {
+                    span {
+                        opacity: 1;
+                        width: auto;
+                    }
+                }
+            }
+        }
+    }
+}
