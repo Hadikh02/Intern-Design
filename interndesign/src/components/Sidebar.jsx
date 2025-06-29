@@ -6,24 +6,16 @@ import Logo from "../assets/Logo.jpg";
 const Sidebar = () => {
     const location = useLocation();
     const navigate = useNavigate();
-    const [closeMenu, setCloseMenu] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
 
     const firstName = "Hadi";
     const lastName = "Khalil";
     const initials = `${firstName[0]}${lastName[0]}`.toUpperCase();
 
-    const handleCloseMenu = () => {
-        setCloseMenu(!closeMenu);
-    };
-
     // Check if screen is mobile size
     useEffect(() => {
         const checkIfMobile = () => {
-            setIsMobile(window.innerWidth <= 768); // 768px is a common breakpoint for tablets
-            if (window.innerWidth <= 768) {
-                setCloseMenu(true); // Auto-close sidebar on mobile
-            }
+            setIsMobile(window.innerWidth <= 768);
         };
 
         // Check on initial render
@@ -44,26 +36,21 @@ const Sidebar = () => {
     ];
 
     return (
-        <div className={closeMenu ? "sidebar active" : "sidebar"}>
-            <div className={closeMenu ? "logoContainer active" : "logoContainer"}>
+        <div className={isMobile ? "sidebar active" : "sidebar"}>
+            <div className="logoContainer">
                 <img src={Logo} alt="Logo" className="logo" />
                 <h2 className="title">Taska</h2>
             </div>
 
-            <div className={closeMenu ? "burgerContainer active" : "burgerContainer"}>
-                <div className="burgerTrigger" onClick={handleCloseMenu}></div>
-                <div className="burgerMenu"></div>
-            </div>
-
-            <div className={closeMenu ? "profileContainer active" : "profileContainer"}>
+            <div className="profileContainer">
                 <div className="profileCircle">{initials}</div>
                 <div className="profileContents">
-                    <p className="name">Hello, {firstName}👋</p>
+                    <p className="name">Hello, {firstName}</p>
                     <p>hadi.khalil332@gmail.com</p>
                 </div>
             </div>
 
-            <div className={closeMenu ? "contentsContainer active" : "contentsContainer"}>
+            <div className="contentsContainer">
                 <ul>
                     {navItems.map((item) => (
                         <li

@@ -1,0 +1,213 @@
+/* Home Page Styles */
+.home-container {
+    margin: 0 0 0 18rem;
+    padding: 0 3rem;
+    min-height: 100vh;
+    background-color: #f8f9fa;
+    transition: margin-left 0.5s ease;
+}
+
+.content-wrapper {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0;
+}
+
+.taska-text {
+    display: block;
+    background: #0d47a1;
+    color: white;
+    padding: 1rem 2rem;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 1.3rem;
+    box-shadow: 0 4px 15px rgba(72, 187, 120, 0.3);
+    margin-bottom: 2rem;
+    text-align: center;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    transition: all 0.3s ease;
+}
+
+    .taska-text:hover {
+        background: #1976d2;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(72, 187, 120, 0.4);
+        cursor: default;
+    }
+
+.main-content {
+    display: flex;
+    align-items: center;
+    gap: 4rem;
+    padding: 0;
+}
+
+.text-content {
+    flex: 1;
+    max-width: 500px;
+    margin-left: 2rem;
+    padding-top: 0;
+}
+
+.image-container {
+    flex: 1.5;
+    max-width: 800px;
+    width: 100%;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    margin-top: 0;
+}
+
+
+.meeting-image {
+    width: 100%;
+    height: auto;
+    max-width: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+    display: block;
+}
+
+
+.description {
+    font-size: 1.1rem;
+    line-height: 1.8;
+    color: #4a5568;
+    margin: 0 0 2rem 0;
+    text-align: left;
+}
+
+.services-link {
+    display: inline-block;
+    background: #0d47a1;
+    color: white;
+    text-decoration: none;
+    padding: 1rem 2.5rem;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 1.1rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(72, 187, 120, 0.3);
+    white-space: nowrap;
+}
+
+    .services-link:hover {
+        background: #1976d2;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(72, 187, 120, 0.4);
+    }
+
+/* Tablet styles */
+@media screen and (max-width: 1024px) {
+    .home-container {
+        margin-left: 15rem;
+        padding: 0 2rem;
+    }
+
+    .main-content {
+        gap: 3rem;
+    }
+
+    .text-content {
+        margin-left: 1rem;
+    }
+
+    .description {
+        margin-left: 1rem;
+        padding-right: 1rem;
+    }
+
+    .meeting-image {
+        max-height: 450px;
+    }
+}
+
+/* Mobile styles */
+@media screen and (max-width: 768px) {
+    .home-container {
+        margin-left: 4.5rem;
+        padding: 0 1rem;
+    }
+
+    .main-content {
+        flex-direction: column;
+        gap: 2rem;
+    }
+
+    .text-content {
+        max-width: 100%;
+        order: 2;
+        margin-left: 0;
+        padding-top: 0;
+    }
+
+    .image-container {
+        max-width: 100%;
+        width: 100%;
+        order: 1;
+        margin-top: 0;
+    }
+
+    .meeting-image {
+        max-height: 300px;
+    }
+
+    .description {
+        font-size: 1rem;
+        line-height: 1.6;
+        margin-bottom: 1.5rem;
+        margin-left: 1.5rem;
+        padding-right: 1rem;
+    }
+
+    .services-link {
+        padding: 0.8rem 2rem;
+        font-size: 1rem;
+        margin-left: 1.5rem;
+        padding-right: 1rem;
+    }
+
+    .taska-text {
+        font-size: 1rem;
+        padding: 0.8rem 1.2rem;
+    }
+}
+
+/* Small mobile styles */
+@media screen and (max-width: 480px) {
+    .home-container {
+        padding: 0 0.5rem;
+    }
+
+    .meeting-image {
+        max-height: 220px;
+    }
+
+    .description {
+        font-size: 0.9rem;
+        margin-left: 1rem;
+        padding-right: 0.5rem;
+    }
+
+    .services-link {
+        padding: 0.7rem 1.5rem;
+        font-size: 0.9rem;
+    }
+
+    .taska-text {
+        font-size: 0.95rem;
+        padding: 0.7rem 1rem;
+    }
+}
+
+/* When sidebar is collapsed on desktop */
+@media screen and (min-width: 769px) {
+    .sidebar.active ~ .home-container,
+    .home-container.sidebar-collapsed {
+        margin-left: 4.5rem;
+    }
+}

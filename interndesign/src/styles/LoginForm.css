@@ -136,22 +136,23 @@
 }
 
 .signup-link {
-    margin-top: 1rem;
+    margin-top: 1.5rem;
     text-align: center;
     color: #6b7280;
-    font-size: 0.875rem;
 }
 
 .signup-text {
     color: #3b82f6;
     font-weight: 500;
+    text-align: right;
     text-decoration: none;
+    transition: color 0.2s ease;
 }
 
-.signup-text:hover {
-    text-decoration: underline;
-}
-
+    .signup-text:hover {
+        text-decoration: underline;
+        color: #3b82f6;
+    }
 /* Responsive Adjustments */
 
 /* Small mobile devices (<= 400px) */

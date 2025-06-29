@@ -1,4 +1,4 @@
-﻿@import './_variables.scss'; 
+﻿@import './_variables.scss';
 
 body {
     height: 100vh;
@@ -15,7 +15,7 @@ body {
     position: fixed;
     top: 0;
     left: 0;
-    padding: 2rem 1.5rem; // قللناها شوي عشان المحتوى يقرب من الشمال
+    padding: 2rem 1.5rem;
     width: 15rem;
     height: 100vh;
     transition: 0.5s all;
@@ -38,76 +38,6 @@ body {
             padding-left: 0;
             margin-left: 0;
         }
-    }
-
-    .burgerContainer {
-        background-color: $green;
-        position: absolute;
-        right: calc(-35px / 2);
-        top: calc(9rem / 1.15);
-        width: 35px;
-        height: 35px;
-        border-radius: 2rem;
-        z-index: 1000;
-        overflow: visible;
-
-        .burgerTrigger {
-            width: 35px;
-            height: 35px;
-            background-color: red;
-            cursor: pointer;
-            z-index: 6;
-            opacity: 0;
-            position: relative;
-        }
-
-        .burgerMenu {
-            background-color: $green;
-            position: relative;
-            z-index: 1;
-            width: 20px;
-            height: 3px;
-            border-radius: 2rem;
-            bottom: calc(35px / 2);
-            left: 0.45rem;
-            transition: 0.5s all;
-
-            &::after {
-                content: "";
-                background-color: $white;
-                position: absolute;
-                width: 20px;
-                height: 3px;
-                border-radius: 2rem;
-                top: 0.4rem;
-                transform: translateY(-0.4rem) rotate(45deg);
-                transition: 0.5s all;
-            }
-
-            &::before {
-                content: "";
-                background-color: $white;
-                position: absolute;
-                width: 20px;
-                height: 3px;
-                border-radius: 2rem;
-                top: -0.4rem;
-                transform: translateY(0.4rem) rotate(-45deg);
-                transition: 0.5s all;
-            }
-        }
-    }
-
-    .burgerContainer::after {
-        content: "";
-        position: absolute;
-        right: 35px;
-        top: calc(35px / 2);
-        z-index: 0;
-        width: calc(6rem + 15rem);
-        background-color: $lightGrey;
-        height: 2px;
-        transition: 0.5s all;
     }
 
     .profileContainer {
@@ -176,7 +106,7 @@ body {
                 transition: 0.25s;
 
                 svg {
-                    margin-right: 10px; // 🟢 Adds spacing between icon and text
+                    margin-right: 10px;
                     flex-shrink: 0;
                 }
 
@@ -202,20 +132,9 @@ body {
     width: 4.5rem;
     transition: 0.5s all;
 
-    .logoContainer.active {
+    .logoContainer {
         h2.title {
             opacity: 0;
-        }
-    }
-
-    .burgerContainer.active {
-        .burgerMenu {
-            background-color: $white;
-        }
-
-        .burgerMenu::before,
-        .burgerMenu::after {
-            transform: rotate(0deg);
         }
     }
 
@@ -243,8 +162,6 @@ body {
         }
     }
 }
-// Existing styles...
-
 
 // Mobile responsiveness
 @media screen and (max-width: 768px) {
@@ -271,36 +188,6 @@ body {
                         opacity: 0;
                         width: 0;
                         overflow: hidden;
-                    }
-                }
-            }
-        }
-    }
-
-    // When sidebar is toggled open on mobile
-    .sidebar:not(.active) {
-        width: 15rem;
-        z-index: 1000;
-        box-shadow: 5px 0 15px rgba(0, 0, 0, 0.1);
-
-        .logoContainer {
-            h2.title {
-                opacity: 1;
-            }
-        }
-
-        .profileContainer {
-            .profileContents {
-                opacity: 1;
-            }
-        }
-
-        .contentsContainer {
-            ul {
-                li {
-                    span {
-                        opacity: 1;
-                        width: auto;
                     }
                 }
             }
