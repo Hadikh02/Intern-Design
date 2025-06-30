@@ -1,9 +1,10 @@
 import './styles/main.scss';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Home from "./pages/Home";
-import Services from "./pages/Services";
-import Schedule from "./pages/Schedule";
 import Login from "./pages/Login";
+import Rooms from "./pages/Rooms";
+import Calendar from "./pages/Calendar";
+import RoomBooking from "./pages/RoomBooking";
 import Sidebar from './components/Sidebar';
 
 function App() {
@@ -13,9 +14,10 @@ function App() {
                 <Sidebar />
                 <Routes>
                     <Route path="/" element={<Home />} />
-                    <Route path="/services" element={<Services />} />
-                    <Route path="/schedule" element={<Schedule />} />
                     <Route path="/login" element={<Login />} />
+                    <Route path="/Rooms" element={<Rooms />} />
+                    <Route path="/Calendar" element={<Calendar />} />
+                    <Route path="/RoomBooking" element={<RoomBooking />} />
                 </Routes>
             </div>
         </Router>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import LoginImg from "../assets/Login.png";
 import "../styles/LoginForm.css";
 
@@ -61,12 +61,7 @@ const Login = () => {
                             <button type="submit" className="login-button">
                                 Login
                             </button>
-                            <div className="signup-link">
-                                Don't have account?{' '}
-                                <a href="#" className="signup-text">
-                                    Sign Up
-                                </a>
-                            </div>
+                           
 
                         </form>
 

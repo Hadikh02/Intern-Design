@@ -1,0 +1,735 @@
+/* Home Page Styles */
+.home-container {
+    margin: 0 0 0 18rem;
+    padding: 0 3rem;
+    min-height: 100vh;
+    transition: margin-left 0.5s ease;
+    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%230d47a1' fill-opacity='0.1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    background-attachment: fixed;
+    font-family: 'Poppins', sans-serif;
+}
+
+.content-wrapper {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0;
+}
+
+.taska-text {
+    display: block;
+    background: #0d47a1;
+    color: white;
+    padding: 1rem 2rem;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 1.3rem;
+    margin-bottom: 2rem;
+    text-align: center;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    transition: all 0.3s ease;
+}
+
+    .taska-text:hover {
+        background: #1976d2;
+        transform: translateY(-2px);
+        cursor: default;
+    }
+
+.main-content {
+    display: flex;
+    align-items: center;
+    gap: 4rem;
+    padding: 0;
+}
+
+.text-content {
+    flex: 1;
+    max-width: 500px;
+    margin-left: 2rem;
+    padding-top: 0;
+}
+
+.image-container {
+    flex: 1.5;
+    max-width: 800px;
+    width: 100%;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    margin-top: 0;
+}
+
+
+.meeting-image {
+    width: 100%;
+    height: auto;
+    max-width: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+    display: block;
+}
+
+
+.description {
+    font-size: 1.1rem;
+    line-height: 1.8;
+    color: #4a5568;
+    margin: 0 0 2rem 0;
+    text-align: left;
+}
+
+.services-link {
+    display: inline-block;
+    background: #0d47a1;
+    color: white;
+    text-decoration: none;
+    padding: 1rem 2.5rem;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 1.1rem;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+    .services-link:hover {
+        background: #1976d2;
+        transform: translateY(-2px);
+        cursor: pointer;
+    }
+
+/* Services Section Styles */
+.services-section {
+    margin-top: 1rem;
+    padding: 2rem 0;
+}
+
+.services-title {
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: #2d3748;
+    text-align: center;
+    margin-bottom: 2rem;
+    position: relative;
+}
+
+    .services-title::after {
+        content: '';
+        position: absolute;
+        bottom: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 80px;
+        height: 4px;
+        background: linear-gradient(90deg, #0d47a1, #1976d2);
+        border-radius: 2px;
+    }
+
+.services-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    padding: 0 1rem;
+}
+
+.service-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem 1.2rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    position: relative;
+    overflow: hidden;
+}
+
+    .service-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #0d47a1, #1976d2);
+        transform: scaleX(0);
+        transition: transform 0.3s ease;
+    }
+
+    .service-card:hover::before {
+        transform: scaleX(1);
+    }
+
+    .service-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+    }
+
+.card-icon {
+    width: 52px;
+    height: 52px;
+    background: linear-gradient(135deg, #0d47a1, #1976d2);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1rem;
+    color: white;
+    transition: all 0.3s ease;
+}
+
+.service-card:hover .card-icon {
+    transform: scale(1.1);
+    box-shadow: 0 8px 25px rgba(13, 71, 161, 0.4);
+}
+
+.card-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #2d3748;
+    margin-bottom: 0.8rem;
+    line-height: 1.3;
+}
+
+.card-description {
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: #718096;
+    margin: 0;
+}
+
+/* Tablet styles */
+@media screen and (max-width: 1024px) {
+    .home-container {
+        margin-left: 15rem;
+        padding: 0 2rem;
+    }
+
+    .main-content {
+        gap: 3rem;
+    }
+
+    .text-content {
+        margin-left: 1rem;
+    }
+
+    .description {
+        margin-left: 1rem;
+        padding-right: 1rem;
+    }
+
+    .meeting-image {
+        max-height: 450px;
+    }
+
+    .services-section {
+        margin-top: 2.5rem;
+        padding: 1.5rem 0;
+    }
+
+    .services-title {
+        font-size: 2rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .services-cards {
+        gap: 1.2rem;
+    }
+
+    .service-card {
+        padding: 1.2rem 1rem;
+    }
+}
+
+/* Mobile styles */
+@media screen and (max-width: 768px) {
+    .home-container {
+        margin-left: 4.5rem;
+        padding: 0 1rem;
+    }
+
+    .main-content {
+        flex-direction: column;
+        gap: 2rem;
+    }
+
+    .text-content {
+        max-width: 100%;
+        order: 2;
+        margin-left: 0;
+        padding-top: 0;
+    }
+
+    .image-container {
+        max-width: 100%;
+        width: 100%;
+        order: 1;
+        margin-top: 0;
+    }
+
+    .meeting-image {
+        max-height: 300px;
+    }
+
+    .description {
+        font-size: 1rem;
+        line-height: 1.6;
+        margin-bottom: 1.5rem;
+        margin-left: 1.5rem;
+        padding-right: 1rem;
+    }
+
+    .services-link {
+        padding: 0.8rem 2rem;
+        font-size: 1rem;
+        margin-left: 1.5rem;
+        padding-right: 1rem;
+    }
+
+    .taska-text {
+        font-size: 1rem;
+        padding: 0.8rem 1.2rem;
+    }
+
+    .services-section {
+        margin-top: 2rem;
+        padding: 1rem 0;
+    }
+
+    .services-title {
+        font-size: 1.6rem;
+        margin-bottom: 1.2rem;
+    }
+
+    .services-cards {
+        grid-template-columns: 1fr;
+        gap: 1.2rem;
+        padding: 0 0.5rem;
+    }
+
+    .service-card {
+        padding: 1.5rem 1.2rem;
+    }
+
+    .card-icon {
+        width: 48px;
+        height: 48px;
+    }
+
+    .card-title {
+        font-size: 1.1rem;
+    }
+
+    .card-description {
+        font-size: 0.85rem;
+    }
+}
+
+/* Small mobile styles */
+@media screen and (max-width: 480px) {
+    .home-container {
+        padding: 0 0.5rem;
+    }
+
+    .meeting-image {
+        max-height: 220px;
+    }
+
+    .description {
+        font-size: 0.9rem;
+        margin-left: 1rem;
+        padding-right: 0.5rem;
+    }
+
+    .services-link {
+        padding: 0.7rem 1.5rem;
+        font-size: 0.9rem;
+    }
+
+    .taska-text {
+        font-size: 0.95rem;
+        padding: 0.7rem 1rem;
+    }
+
+    .services-section {
+        margin-top: 2.5rem;
+        padding: 1rem 0;
+    }
+
+    .services-title {
+        font-size: 1.6rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .service-card {
+        padding: 1.5rem 1rem;
+    }
+
+    .card-icon {
+        width: 48px;
+        height: 48px;
+    }
+
+    .card-title {
+        font-size: 1.1rem;
+    }
+
+    .card-description {
+        font-size: 0.9rem;
+    }
+}
+
+/* When sidebar is collapsed on desktop */
+@media screen and (min-width: 769px) {
+    .sidebar.active ~ .home-container,
+    .home-container.sidebar-collapsed {
+        margin-left: 4.5rem;
+    }
+}
+/* ==================== */
+/* New Schedule Section */
+/* ==================== */
+.schedule-section {
+    margin-top: 1rem;
+    padding: 2rem 0;
+}
+
+.schedule-title {
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: #2d3748;
+    text-align: center;
+    margin-bottom: 2rem;
+    position: relative;
+}
+
+    .schedule-title::after {
+        content: '';
+        position: absolute;
+        bottom: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 80px;
+        height: 4px;
+        background: linear-gradient(90deg, #0d47a1, #1976d2);
+        border-radius: 2px;
+    }
+
+.calendar-container {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.calendar-month {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #2d3748;
+    margin: 0;
+}
+
+.calendar-nav {
+    background: #f0f4f8;
+    border: none;
+    border-radius: 8px;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 1.2rem;
+    color: #0d47a1;
+    transition: all 0.3s ease;
+}
+
+    .calendar-nav:hover {
+        background: #0d47a1;
+        color: white;
+    }
+
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 8px;
+}
+
+.calendar-weekday {
+    text-align: center;
+    font-weight: 600;
+    color: #4a5568;
+    padding: 0.5rem;
+}
+
+.calendar-day {
+    background: #f8f9fa;
+    border-radius: 8px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+    .calendar-day:hover {
+        background: #0d47a1;
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .calendar-day.empty {
+        background: transparent;
+        cursor: default;
+    }
+
+    .calendar-day.today {
+        position: relative;
+        color: #0d47a1;
+        font-weight: 700;
+    }
+
+        .calendar-day.today:hover {
+            color: white; /* Change text color on hover */
+            background: #0d47a1; /* Blue background on hover */
+        }
+
+        .calendar-day.today::after {
+            content: '';
+            position: absolute;
+            bottom: 5px;
+            width: 6px;
+            height: 6px;
+            background: #0d47a1;
+            border-radius: 50%;
+        }
+
+        .calendar-day.today:hover::after {
+            background: white;
+        }
+
+        .calendar-day.today:hover {
+            background: #0d47a1;
+            color: white;
+        }
+
+/* ============== */
+/* New Footer */
+/* ============== */
+.modern-footer {
+    padding: 3rem 0 0;
+    margin-top: 1rem;
+}
+
+.footer-content {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+}
+
+.footer-logo {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.footer-logo-img {
+    width: 50px;
+    height: auto;
+    margin-bottom: 1rem;
+}
+
+.footer-logo h3 {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.footer-contact i {
+    display: inline-block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    font-size: 1rem !important;
+    color: #000 !important;
+}
+
+.footer-logo p {
+    margin: 0;
+}
+
+.footer-links h4,
+.footer-contact h4 {
+    font-size: 1.2rem;
+    margin-bottom: 1.5rem;
+    position: relative;
+}
+
+    .footer-links h4::after,
+    .footer-contact h4::after {
+        content: '';
+        position: absolute;
+        bottom: -8px;
+        left: 0;
+        width: 40px;
+        height: 3px;
+        background: #0d47a1;
+    }
+
+.footer-links ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.footer-links li {
+    margin-bottom: 0.8rem;
+}
+
+.footer-links a {
+    text-decoration: none;
+    color: black;
+    transition: color 0.3s ease;
+}
+
+    .footer-links a:hover {
+        color: #0d47a1;
+        text-decoration: underline;
+    }
+
+
+
+.footer-contact p {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+
+
+.footer-bottom {
+    text-align: center;
+    padding: 1.5rem;
+    margin-top: 2rem;
+    border-top: 1px solid #4a5568;
+    font-size: 0.9rem;
+}
+
+/* ================== */
+/* Responsive Additions */
+/* ================== */
+@media screen and (max-width: 1024px) {
+    .calendar-container {
+        padding: 1rem;
+    }
+
+    .calendar-month {
+        font-size: 1.3rem;
+    }
+}
+
+@media screen and (max-width: 768px) {
+    .schedule-section {
+        padding: 1.5rem 0;
+    }
+
+    .schedule-title {
+        font-size: 1.8rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .calendar-container {
+        max-width: 100%;
+    }
+
+    .calendar-day {
+        height: 35px;
+        font-size: 0.9rem;
+    }
+
+    .footer-content {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+
+    .footer-logo {
+        align-items: center;
+        text-align: center;
+    }
+
+    .footer-links,
+    .footer-contact {
+        text-align: center;
+    }
+
+        .footer-links h4::after,
+        .footer-contact h4::after {
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .footer-links ul {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 1rem;
+        }
+
+    .social-icons {
+        justify-content: center;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .calendar-day {
+        height: 30px;
+        font-size: 0.8rem;
+    }
+
+    .footer-content {
+        padding: 0 1rem;
+    }
+}
+/* Past date styling */
+.calendar-day.past-date {
+    color: #cbd5e0;
+    background: #edf2f7;
+    cursor: not-allowed;
+}
+
+    .calendar-day.past-date:hover {
+        background: #edf2f7;
+        color: #cbd5e0;
+        transform: none;
+        box-shadow: none;
+    }
+
+/* Disabled navigation button */
+.calendar-nav:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: #f0f4f8;
+    color: #a0aec0;
+}
+
+    .calendar-nav:disabled:hover {
+        background: #f0f4f8;
+        color: #a0aec0;
+        transform: none;
+        box-shadow: none;
+    }

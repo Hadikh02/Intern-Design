@@ -1,0 +1,310 @@
+/* Rooms Page Styles */
+.rooms-container {
+    margin: 0 0 0 18rem;
+    padding: 0 3rem;
+    min-height: 100vh;
+    transition: margin-left 0.5s ease;
+    font-family: 'Poppins', sans-serif;
+    min-height: 100vh;
+    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%230d47a1' fill-opacity='0.1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    background-attachment: fixed;
+}
+
+.rooms-header {
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+    .rooms-header h1 {
+        font-size: 2rem;
+        color: #2d3748;
+        margin-bottom: 1.5rem;
+        font-weight: 600;
+    }
+
+.filters {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    flex-wrap: wrap;
+    margin-bottom: 2rem;
+}
+
+.filter-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+    .filter-group label {
+        font-weight: 500;
+        color: #0d47a1;
+    }
+
+    .filter-group select {
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        border: 1px solid #0d47a1;
+        background-color: white;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+        font-family: 'Poppins', sans-serif;
+    }
+
+        .filter-group select:hover {
+            border-color: #0d47a1;
+        }
+
+        .filter-group select:focus {
+            outline: none;
+            border-color: #0d47a1;
+        }
+
+.rooms-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.room-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    display: flex;
+    flex-direction: column;
+}
+
+    .room-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+    }
+
+.room-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid #edf2f7;
+    padding-bottom: 0.5rem;
+}
+
+    .room-header h3 {
+        font-size: 1.3rem;
+        color: #2d3748;
+        margin: 0;
+        font-weight: 600;
+    }
+
+.room-details {
+    flex-grow: 1;
+    margin-bottom: 1rem;
+}
+
+    .room-details p {
+        margin: 0.5rem 0;
+        color: #4a5568;
+        font-size: 0.9rem;
+    }
+
+.room-features {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 1rem;
+    flex-wrap: wrap;
+}
+
+.feature {
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    background-color: #ebf8ff;
+    color: #3182ce;
+}
+
+    .feature.unavailable {
+        background-color: #f7fafc;
+        color: #a0aec0;
+    }
+
+.book-btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    border: none;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: auto;
+    font-family: 'Poppins', sans-serif;
+    background-color: #1976d2;
+    color: white;
+}
+
+    .book-btn:hover {
+        background-color: #1565c0;
+        transform: translateY(-2px);
+    }
+
+/* Footer Styles */
+.modern-footer {
+    padding: 3rem 0 0;
+    margin-top: 3rem;
+    background: white;
+    border-top: 1px solid #e2e8f0;
+}
+
+.footer-content {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+}
+
+.footer-logo h3 {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+    color: #0d47a1;
+}
+
+.footer-logo p {
+    margin: 0;
+    color: #4a5568;
+}
+
+.footer-links h4,
+.footer-contact h4 {
+    font-size: 1.2rem;
+    margin-bottom: 1.5rem;
+    position: relative;
+    color: #2d3748;
+}
+
+    .footer-links h4::after,
+    .footer-contact h4::after {
+        content: '';
+        position: absolute;
+        bottom: -8px;
+        left: 0;
+        width: 40px;
+        height: 3px;
+        background: #0d47a1;
+    }
+
+.footer-links ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.footer-links li {
+    margin-bottom: 0.8rem;
+}
+
+.footer-links a {
+    text-decoration: none;
+    color: #4a5568;
+    transition: color 0.3s ease;
+    font-weight: 500;
+}
+
+    .footer-links a:hover {
+        color: #0d47a1;
+    }
+
+.footer-contact p {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    color: #4a5568;
+}
+
+.footer-contact i {
+    color: #38a169;
+    width: 20px;
+    text-align: center;
+}
+
+.footer-bottom {
+    text-align: center;
+    padding: 1.5rem;
+    margin-top: 2rem;
+    border-top: 1px solid #e2e8f0;
+    font-size: 0.9rem;
+    color: #718096;
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+    .rooms-container {
+        margin-left: 4.5rem;
+        padding: 1.5rem;
+    }
+
+    .filters {
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .rooms-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .footer-content {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+
+    .footer-logo {
+        align-items: center;
+        text-align: center;
+    }
+
+    .footer-links,
+    .footer-contact {
+        text-align: center;
+    }
+
+        .footer-links h4::after,
+        .footer-contact h4::after {
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .footer-links ul {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 1rem;
+        }
+}
+
+@media (max-width: 480px) {
+    .rooms-container {
+        margin-left: 0;
+        padding: 1rem;
+    }
+
+    .rooms-header h1 {
+        font-size: 1.8rem;
+    }
+
+    .room-header h3 {
+        font-size: 1.2rem;
+    }
+
+    .footer-content {
+        padding: 0 1rem;
+    }
+
+    .footer-links ul {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+}

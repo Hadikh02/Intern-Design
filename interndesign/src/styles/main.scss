@@ -6,8 +6,8 @@ body {
     font-family: $fontFamily;
     background-color: #FFFFFF;
     text-transform: capitalize;
-    overflow-x: hidden; /* يمنع السكروول الأفقي */
-    overflow-y: auto; /* يسمح بالسكروول العمودي */
+    overflow-x: hidden;
+    overflow-y: auto;
 }
 
 .sidebar {
@@ -20,6 +20,7 @@ body {
     height: 100vh;
     transition: 0.5s all;
     overflow: visible;
+    z-index: 100;
 
     .logoContainer {
         display: flex;
@@ -45,6 +46,7 @@ body {
         align-items: center;
         justify-content: flex-start;
         padding: 3rem 0 0 0;
+        position: relative;
 
         .profileCircle {
             width: 50px;
@@ -63,6 +65,7 @@ body {
 
         .profileContents {
             padding-left: 0;
+            transition: opacity 0.3s ease;
 
             p.name {
                 margin: 0;
@@ -76,6 +79,32 @@ body {
                 font-size: 13.9px;
                 color: $darkGrey;
                 text-transform: lowercase;
+            }
+
+            .profileButton {
+                margin-top: 10px;
+                padding: 6px 12px;
+                background-color: $green;
+                color: white;
+                border: none;
+                border-radius: 4px;
+                cursor: pointer;
+                font-size: 12px;
+                font-weight: 500;
+                transition: all 0.3s ease;
+                opacity: 1;
+                display: block;
+                width: auto;
+                position: relative;
+                left: 0;
+                top: 0;
+                transform: none;
+                box-shadow: none;
+                z-index: 1;
+
+                &:hover {
+                    background-color: darken($green, 10%);
+                }
             }
         }
     }
@@ -141,10 +170,57 @@ body {
     .profileContainer {
         .profileContents {
             opacity: 0;
+            width: 0;
+            height: 0;
+            overflow: hidden;
+
+            .profileButton {
+                opacity: 1 !important;
+                position: absolute;
+                left: 5.5rem;
+                top: 50%;
+                transform: translateY(-50%);
+                white-space: nowrap;
+                z-index: 10;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+                margin-top: 0;
+                width: auto;
+                display: block;
+            }
         }
 
         .profileCircle {
             flex-shrink: 0;
+        }
+        // Override for mobile screens
+        @media screen and (max-width: 768px) {
+            flex-direction: column;
+            align-items: center;
+
+            .profileContents {
+                opacity: 1;
+                width: auto;
+                height: auto;
+                overflow: visible;
+
+                p {
+                    display: none;
+                }
+
+                .profileButton {
+                    position: static;
+                    transform: none;
+                    margin-top: 10px;
+                    font-size: 10px;
+                    padding: 4px 8px;
+                    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+                }
+            }
+
+            .profileCircle {
+                margin-right: 0;
+                margin-bottom: 5px;
+            }
         }
     }
 
@@ -176,8 +252,32 @@ body {
         }
 
         .profileContainer {
+            flex-direction: column;
+            align-items: center;
+
             .profileContents {
-                opacity: 0;
+                p {
+                    display: none;
+                }
+
+                .profileButton {
+                    opacity: 1 !important;
+                    position: static;
+                    transform: none;
+                    white-space: nowrap;
+                    z-index: 10;
+                    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+                    margin-top: 10px;
+                    width: auto;
+                    display: block;
+                    font-size: 10px;
+                    padding: 4px 8px;
+                }
+            }
+
+            .profileCircle {
+                margin-right: 0;
+                margin-bottom: 5px;
             }
         }
 
