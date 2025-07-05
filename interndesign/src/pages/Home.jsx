@@ -1,15 +1,32 @@
 ﻿import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Swal from 'sweetalert2';
 import '../styles/Home.css';
 import ImgOne from '../assets/Home1.jpg';
 import ImgTwo from '../assets/Home2.jpg';
 
 const Home = () => {
     const navigate = useNavigate();
+
     useEffect(() => {
         window.scrollTo(0, 0);
     }, []);
 
+    const handleViewRoomsClick = () => {
+        const token = localStorage.getItem('accessToken');
+        if (!token) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Please log in to continue',
+                confirmButtonColor: '#3085d6',
+                confirmButtonText: 'OK'
+            }).then(() => {
+                navigate('/login');
+            });
+            return;
+        }
+        navigate('/Rooms');
+    };
 
     return (
         <div className="home-container" id="home">
@@ -108,9 +125,7 @@ const Home = () => {
                             </p>
                             <button
                                 className="rooms-button"
-                                onClick={() => {
-                                    navigate('/Rooms');
-                                }}
+                                onClick={handleViewRoomsClick}
                             >
                                 View Our Rooms →
                             </button>
@@ -131,7 +146,6 @@ const Home = () => {
                                 <li><a href="#" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>Home</a></li>
                                 <li><a href="#services">Services</a></li>
                                 <li><a href="#rooms">Rooms</a></li>
-                                <li><a href="/login">Login</a></li>
                             </ul>
                         </div>
                         <div className="footer-contact">

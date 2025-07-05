@@ -1,33 +1,62 @@
 ﻿import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom'; 
+import { useNavigate } from 'react-router-dom';
 import '../styles/Rooms.css';
 
 const Rooms = () => {
-    const navigate = useNavigate(); 
+    const navigate = useNavigate();
+    const [rooms, setRooms] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [capacityFilter, setCapacityFilter] = useState('all');
+
     useEffect(() => {
         window.scrollTo(0, 0);
     }, []);
 
+    useEffect(() => {
+        const token = localStorage.getItem('accessToken');
+        if (!token) {
+            setError('No access token found. Please log in.');
+            setLoading(false);
+            navigate("/Login");
+            return; 
+        }
 
-    const roomsData = [
-        { id: 1, number: '101', location: 'Floor 1', capacity: 4, video: true, projector: true },
-        { id: 2, number: '201', location: 'Floor 2', capacity: 6, video: true, projector: false },
-        { id: 3, number: '102', location: 'Floor 1', capacity: 2, video: false, projector: true },
-        { id: 4, number: '202', location: 'Floor 2', capacity: 8, video: true, projector: true },
-        { id: 5, number: '103', location: 'Floor 1', capacity: 4, video: false, projector: false },
-        { id: 6, number: '203', location: 'Floor 2', capacity: 10, video: true, projector: true },
-    ];
+        const fetchRooms = async () => {
+            try {
+                const response = await fetch("https://localhost:7175/api/Room", {
+                    method: "GET",
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                    },
+                });
 
-    const [capacityFilter, setCapacityFilter] = useState('all');
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        throw new Error('Unauthorized. Please log in again.');
+                    }
+                    throw new Error(`Error: ${response.statusText}`);
+                }
 
-    const filteredRooms = roomsData.filter(room => {
+                const data = await response.json();
+                setRooms(data);
+            } catch (err) {
+                setError(err.message);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchRooms();
+    }, []);
+
+    const filteredRooms = rooms.filter(room => {
         return capacityFilter === 'all' || room.capacity >= parseInt(capacityFilter);
     });
 
-
-    const handleBookNow = (roomNumber) => {
-
-        navigate('/Calendar', { state: { roomNumber } });
+    const handleBookNow = (roomId) => {
+        navigate('/Calendar', { state: { roomId } });
     };
 
     return (
@@ -51,30 +80,30 @@ const Rooms = () => {
                 </div>
             </div>
 
+            {loading && <p>Loading rooms...</p>}
+            {error && <p className="error">{error}</p>}
+
             <div className="rooms-grid">
-                {filteredRooms.map(room => (
+                {!loading && !error && filteredRooms.map(room => (
                     <div key={room.id} className="room-card">
                         <div className="room-header">
-                            <h3>Room {room.number}</h3>
+                            <h3>Room {room.roomNumber}</h3>
                         </div>
-
                         <div className="room-details">
                             <p><strong>Location:</strong> {room.location}</p>
                             <p><strong>Capacity:</strong> {room.capacity} people</p>
-
                             <div className="room-features">
-                                <span className={room.video ? 'feature' : 'feature unavailable'}>
-                                    {room.video ? 'Video Conference' : 'No Video'}
+                                <span className={room.hasVideo ? 'feature' : 'feature unavailable'}>
+                                    {room.hasVideo ? 'Video Conference' : 'No Video'}
                                 </span>
-                                <span className={room.projector ? 'feature' : 'feature unavailable'}>
-                                    {room.projector ? 'Projector' : 'No Projector'}
+                                <span className={room.hasProjector ? 'feature' : 'feature unavailable'}>
+                                    {room.hasProjector ? 'Projector' : 'No Projector'}
                                 </span>
                             </div>
                         </div>
-
                         <button
                             className="book-btn"
-                            onClick={() => handleBookNow(room.number)}
+                            onClick={() => handleBookNow(room.id)}
                         >
                             Book Now
                         </button>
@@ -91,10 +120,9 @@ const Rooms = () => {
                     <div className="footer-links">
                         <h4>Quick Links</h4>
                         <ul>
-                            <li><a href="#" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>Home</a></li>
-                            <li><a href="#services">Services</a></li>
-                            <li><a href="#schedule">Schedule</a></li>
-                            <li><a href="/login">Login</a></li>
+                            <li><a href="/" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>Home</a></li>
+                            <li><a href="/#services">Services</a></li>
+                            <li><a href="/#schedule">Schedule</a></li>
                         </ul>
                     </div>
                     <div className="footer-contact">

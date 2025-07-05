@@ -1,11 +1,21 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+﻿import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import '../styles/Calendar.css';
 
 const HomeCalendarAndFooter = () => {
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        const token = localStorage.getItem('accessToken');
+        if (!token) {
+            // إذا ما في توكن، حوّل المستخدم لصفحة تسجيل الدخول
+            navigate('/login', { replace: true });
+        }
+    }, [navigate]);
     const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
     const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
-    const navigate = useNavigate();
+    const location = useLocation();
+    const { roomId } = location.state || {}; // get roomId passed from Rooms.jsx
 
     const months = [
         "January", "February", "March", "April", "May", "June",
@@ -67,9 +77,19 @@ const HomeCalendarAndFooter = () => {
 
     const handleDayClick = (day) => {
         if (!isPastDate(day)) {
+            // أنشئ التاريخ بدون تعديل
             const selectedDate = new Date(currentYear, currentMonth, day);
-            const formattedDate = selectedDate.toISOString().split('T')[0];
-            navigate('/RoomBooking', { state: { selectedDate: formattedDate } });
+
+            // هنا اضيف يوم بطريقة دقيقة:
+            const adjustedDate = new Date(selectedDate);
+            adjustedDate.setDate(adjustedDate.getDate() + 1);
+
+            navigate('/RoomBooking', {
+                state: {
+                    selectedDate: adjustedDate,
+                    roomId
+                }
+            });
         }
     };
 
@@ -156,10 +176,9 @@ const HomeCalendarAndFooter = () => {
                         <div className="footer-links">
                             <h4>Quick Links</h4>
                             <ul>
-                                <li><a href="#" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>Home</a></li>
-                                <li><a href="#services">Services</a></li>
-                                <li><a href="#schedule">Schedule</a></li>
-                                <li><a href="/login">Login</a></li>
+                                <li><a href="/" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>Home</a></li>
+                                <li><a href="/#services">Services</a></li>
+                                <li><a href="/#schedule">Schedule</a></li>
                             </ul>
                         </div>
                         <div className="footer-contact">
