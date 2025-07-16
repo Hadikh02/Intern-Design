@@ -1,10 +1,6 @@
-﻿import React, { useState, useEffect, useRef } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import {
-    Mic, MicOff, Video, VideoOff,
-    Hand, Phone, Users, Maximize, Minimize, X,
-    MessageSquare, Share2, Monitor
-} from 'lucide-react';
+import { List, ClipboardList, X, Check, Plus, User, ChevronDown, ChevronUp, Edit, Trash2 } from 'lucide-react';
 import '../styles/Screen.scss';
 
 const Screen = () => {
@@ -13,456 +9,28 @@ const Screen = () => {
     const { meetingId, userId } = location.state || {};
 
     // Meeting state
-    const [attendees, setAttendees] = useState([]);
     const [meeting, setMeeting] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [attendees, setAttendees] = useState([]);
     const [isOrganizer, setIsOrganizer] = useState(false);
 
-    // Media state
-    const [isAudioEnabled, setIsAudioEnabled] = useState(true);
-    const [isVideoEnabled, setIsVideoEnabled] = useState(true);
-    const [isHandRaised, setIsHandRaised] = useState(false);
-    const [isScreenSharing, setIsScreenSharing] = useState(false);
-    const [mediaError, setMediaError] = useState(null);
-
     // UI state
-    const [isFullScreen, setIsFullScreen] = useState(false);
-    const [showParticipants, setShowParticipants] = useState(false);
-    const [showChat, setShowChat] = useState(false);
-    const [chatMessages, setChatMessages] = useState([]);
-    const [newMessage, setNewMessage] = useState('');
-
-    // WebRTC state
-    const [peerConnections, setPeerConnections] = useState({});
-    const [remoteStreams, setRemoteStreams] = useState({});
-    const [signalingChannel, setSignalingChannel] = useState(null);
-
-    // Refs
-    const localVideoRef = useRef(null);
-    const screenShareRef = useRef(null);
-    const localStreamRef = useRef(null);
-    const pollIntervalRef = useRef(null);
-    const hasJoinedRef = useRef(false);
-
-    // WebRTC Configuration
-    const pcConfig = {
-        iceServers: [
-            { urls: 'stun:stun.l.google.com:19302' },
-            // Add TURN servers here if needed
-        ]
-    };
-
-    // Initialize WebSocket signaling channel
-    const setupSignalingChannel = () => {
-        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        const wsUrl = `${protocol}//${window.location.host}/ws`;
-
-        const ws = new WebSocket(wsUrl);
-
-        ws.onopen = () => {
-            console.log('Signaling channel connected');
-            ws.send(JSON.stringify({
-                type: 'join',
-                meetingId,
-                userId
-            }));
-        };
-
-        ws.onmessage = async (event) => {
-            const message = JSON.parse(event.data);
-
-            switch (message.type) {
-                case 'offer':
-                    await handleOffer(message);
-                    break;
-                case 'answer':
-                    await handleAnswer(message);
-                    break;
-                case 'ice-candidate':
-                    await handleIceCandidate(message);
-                    break;
-                case 'user-joined':
-                    handleUserJoined(message);
-                    await createOffer(message.userId);
-                    break;
-                case 'user-left':
-                    handleUserLeft(message);
-                    break;
-                case 'media-update':
-                    handleMediaUpdate(message);
-                    break;
-                default:
-                    console.warn('Unknown message type:', message.type);
-            }
-        };
-
-        ws.onclose = () => {
-            console.log('Signaling channel disconnected');
-            setTimeout(() => {
-                if (!hasJoinedRef.current) return;
-                setSignalingChannel(setupSignalingChannel());
-            }, 3000);
-        };
-
-        ws.onerror = (error) => {
-            console.error('Signaling channel error:', error);
-        };
-
-        setSignalingChannel(ws);
-        return ws;
-    };
-
-    // Create a new peer connection
-    const createPeerConnection = (remoteUserId) => {
-        const pc = new RTCPeerConnection(pcConfig);
-
-        pc.onicecandidate = (event) => {
-            if (event.candidate) {
-                signalingChannel?.send(JSON.stringify({
-                    type: 'ice-candidate',
-                    meetingId,
-                    toUserId: remoteUserId,
-                    candidate: event.candidate
-                }));
-            }
-        };
-
-        pc.ontrack = (event) => {
-            if (event.streams && event.streams.length > 0) {
-                setRemoteStreams(prev => ({
-                    ...prev,
-                    [remoteUserId]: event.streams[0]
-                }));
-            }
-        };
-
-        pc.onconnectionstatechange = () => {
-            console.log(`Connection state with ${remoteUserId}:`, pc.connectionState);
-            if (pc.connectionState === 'disconnected' || pc.connectionState === 'failed') {
-                handleUserLeft({ userId: remoteUserId });
-            }
-        };
-
-        if (localStreamRef.current) {
-            localStreamRef.current.getTracks().forEach(track => {
-                pc.addTrack(track, localStreamRef.current);
-            });
-        }
-
-        return pc;
-    };
-
-    // Handle incoming offer
-    const handleOffer = async (message) => {
-        const { fromUserId, offer } = message;
-        const pc = createPeerConnection(fromUserId);
-
-        try {
-            await pc.setRemoteDescription(new RTCSessionDescription(offer));
-            const answer = await pc.createAnswer();
-            await pc.setLocalDescription(answer);
-
-            signalingChannel?.send(JSON.stringify({
-                type: 'answer',
-                meetingId,
-                toUserId: fromUserId,
-                answer,
-                fromUserId: userId
-            }));
-
-            setPeerConnections(prev => ({ ...prev, [fromUserId]: pc }));
-        } catch (err) {
-            console.error('Error handling offer:', err);
-        }
-    };
-
-    // Handle incoming answer
-    const handleAnswer = async (message) => {
-        const { fromUserId, answer } = message;
-        const pc = peerConnections[fromUserId];
-        if (pc) {
-            try {
-                await pc.setRemoteDescription(new RTCSessionDescription(answer));
-            } catch (err) {
-                console.error('Error setting remote description:', err);
-            }
-        }
-    };
-
-    // Handle ICE candidate
-    const handleIceCandidate = async (message) => {
-        const { fromUserId, candidate } = message;
-        const pc = peerConnections[fromUserId];
-        if (pc && candidate) {
-            try {
-                await pc.addIceCandidate(new RTCIceCandidate(candidate));
-            } catch (err) {
-                console.error('Error adding ICE candidate:', err);
-            }
-        }
-    };
-
-    // Handle user joined event
-    const handleUserJoined = (message) => {
-        console.log(`User ${message.userId} joined the meeting`);
-        fetchAttendees();
-    };
-
-    // Handle media update event
-    const handleMediaUpdate = (message) => {
-        const { userId: updatedUserId, hasVideo, hasAudio } = message;
-        setAttendees(prev => prev.map(attendee =>
-            attendee.userId === updatedUserId
-                ? { ...attendee, hasVideo, hasAudio }
-                : attendee
-        ));
-    };
-
-    // Handle user left event
-    const handleUserLeft = (message) => {
-        const { userId: leftUserId } = message;
-        if (peerConnections[leftUserId]) {
-            peerConnections[leftUserId].close();
-            setPeerConnections(prev => {
-                const newPCs = { ...prev };
-                delete newPCs[leftUserId];
-                return newPCs;
-            });
-        }
-
-        setRemoteStreams(prev => {
-            const newStreams = { ...prev };
-            delete newStreams[leftUserId];
-            return newStreams;
-        });
-
-        setAttendees(prev => prev.filter(attendee => attendee.userId !== leftUserId));
-    };
-
-    // Initialize media devices
-    const initializeMedia = async () => {
-        try {
-            if (localStreamRef.current) {
-                localStreamRef.current.getTracks().forEach(track => track.stop());
-            }
-
-            if (isAudioEnabled || isVideoEnabled) {
-                const constraints = {
-                    audio: isAudioEnabled,
-                    video: isVideoEnabled ? {
-                        width: { ideal: 1280 },
-                        height: { ideal: 720 },
-                        facingMode: 'user'
-                    } : false
-                };
-
-                const stream = await navigator.mediaDevices.getUserMedia(constraints);
-                localStreamRef.current = stream;
-
-                if (localVideoRef.current) {
-                    localVideoRef.current.srcObject = isVideoEnabled ? stream : null;
-                    if (isVideoEnabled) {
-                        localVideoRef.current.onloadedmetadata = () => {
-                            localVideoRef.current.play().catch(err => {
-                                console.error("Error playing video:", err);
-                                setMediaError("Couldn't start video playback");
-                            });
-                        };
-                    }
-                }
-
-                // Update all peer connections with new stream
-                Object.entries(peerConnections).forEach(([userId, pc]) => {
-                    pc.getSenders().forEach(sender => {
-                        if (sender.track) pc.removeTrack(sender);
-                    });
-                    stream.getTracks().forEach(track => {
-                        pc.addTrack(track, stream);
-                    });
-                });
-
-                // Notify others about media change
-                if (signalingChannel?.readyState === WebSocket.OPEN) {
-                    signalingChannel.send(JSON.stringify({
-                        type: 'media-update',
-                        meetingId,
-                        userId,
-                        hasVideo: isVideoEnabled,
-                        hasAudio: isAudioEnabled
-                    }));
-                }
-            } else {
-                localStreamRef.current = null;
-                if (localVideoRef.current) {
-                    localVideoRef.current.srcObject = null;
-                }
-
-                if (signalingChannel?.readyState === WebSocket.OPEN) {
-                    signalingChannel.send(JSON.stringify({
-                        type: 'media-update',
-                        meetingId,
-                        userId,
-                        hasVideo: false,
-                        hasAudio: false
-                    }));
-                }
-            }
-        } catch (err) {
-            console.error('Media initialization error:', err);
-            setMediaError(err.message);
-        }
-    };
-
-    // Toggle screen sharing
-    const toggleScreenShare = async () => {
-        if (isScreenSharing) {
-            if (screenShareRef.current?.srcObject) {
-                screenShareRef.current.srcObject.getTracks().forEach(track => track.stop());
-                screenShareRef.current.srcObject = null;
-            }
-            setIsScreenSharing(false);
-        } else {
-            try {
-                const stream = await navigator.mediaDevices.getDisplayMedia({ 
-                    video: true,
-                    audio: true 
-                });
-                
-                if (screenShareRef.current) {
-                    screenShareRef.current.srcObject = stream;
-                }
-                
-                stream.getVideoTracks()[0].onended = () => {
-                    setIsScreenSharing(false);
-                };
-                
-                setIsScreenSharing(true);
-            } catch (err) {
-                console.error('Screen share error:', err);
-            }
-        }
-    };
-
-    // Update attendee status on server
-    const updateAttendeeStatus = async (updates) => {
-        try {
-            const token = localStorage.getItem('accessToken');
-
-            const response = await fetch(`https://localhost:7175/api/MeetingAttendees/update-status`, {
-                method: 'PUT',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    meetingId: meetingId,
-                    userId: userId,
-                    ...updates
-                })
-            });
-
-            if (!response.ok) {
-                throw new Error(`Failed to update attendee status (${response.status})`);
-            }
-        } catch (err) {
-            console.error('Error updating attendee status:', err);
-        }
-    };
-
-    // Join meeting function
-    const joinMeeting = async () => {
-        if (hasJoinedRef.current) return;
-
-        try {
-            const token = localStorage.getItem('accessToken');
-
-            await fetch(`https://localhost:7175/api/MeetingAttendees/join`, {
-                method: 'PUT',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    meetingId: meetingId,
-                    userId: userId,
-                    hasAudio: isAudioEnabled,
-                    hasVideo: isVideoEnabled,
-                    isHandRaised: isHandRaised,
-                    role: isOrganizer ? "Organizer" : "Participant"
-                })
-            });
-
-            hasJoinedRef.current = true;
-        } catch (err) {
-            console.error('Error joining meeting:', err);
-        }
-    };
-
-    // Fetch attendees data + user profiles
-    const fetchAttendees = async () => {
-        try {
-            const token = localStorage.getItem('accessToken');
-
-            // Fetch attendees
-            const attendeesResponse = await fetch(`https://localhost:7175/api/MeetingAttendees?meetingId=${meetingId}`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-
-            if (!attendeesResponse.ok) {
-                throw new Error(`Failed to fetch attendees (${attendeesResponse.status})`);
-            }
-
-            const attendeesData = await attendeesResponse.json();
-
-            // Extract unique userIds
-            const userIds = [...new Set(attendeesData.map(a => a.userId))];
-
-            // Fetch user profiles
-            const usersResponse = await fetch(`https://localhost:7175/api/Users?ids=${userIds.join(',')}`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-
-            if (!usersResponse.ok) {
-                throw new Error(`Failed to fetch user profiles (${usersResponse.status})`);
-            }
-
-            const usersData = await usersResponse.json();
-
-            // Merge user profiles into attendees
-            const attendeesWithNames = attendeesData.map(attendee => {
-                const user = usersData.find(u => u.id === attendee.userId);
-                return {
-                    ...attendee,
-                    firstName: user?.firstName || '',
-                    lastName: user?.lastName || '',
-                };
-            });
-
-            // Get most recent status for each user
-            const latestAttendeesMap = new Map();
-            attendeesWithNames.forEach(attendee => {
-                const existing = latestAttendeesMap.get(attendee.userId);
-                if (!existing || 
-                    new Date(attendee.updatedAt || attendee.createdAt) > new Date(existing.updatedAt || existing.createdAt)) {
-                    latestAttendeesMap.set(attendee.userId, attendee);
-                }
-            });
-
-            // Filter active attendees
-            const activeAttendees = Array.from(latestAttendeesMap.values())
-                .filter(attendee => {
-                    const isNotCurrentUser = String(attendee.userId) !== String(userId);
-                    const isActive = ['Present', 'Joined'].includes(attendee.attendanceStatus);
-                    const hasNotLeft = !['Left', 'Disconnected'].includes(attendee.attendanceStatus);
-                    return isNotCurrentUser && isActive && hasNotLeft;
-                });
-
-            setAttendees(activeAttendees);
-        } catch (err) {
-            console.error('Error fetching attendees:', err);
-        }
-    };
+    const [activeTab, setActiveTab] = useState('agenda');
+    const [showForm, setShowForm] = useState(false);
+    const [formData, setFormData] = useState({
+        Topic: '',
+        Description: '',
+        TimeAllocation: '',
+        Status: 'Pending',
+        AssignAction: '',
+        DueDate: '',
+        MeetingAttendeeId: ''
+    });
+    const [agendaItems, setAgendaItems] = useState([]);
+    const [actionItems, setActionItems] = useState([]);
+    const [expandedAgendaItem, setExpandedAgendaItem] = useState(null);
+    const [editingItem, setEditingItem] = useState(null);
 
     // Fetch meeting data
     useEffect(() => {
@@ -487,12 +55,81 @@ const Screen = () => {
 
                 const meetingData = await meetingResponse.json();
                 setMeeting(meetingData);
-                setIsOrganizer(meetingData.userId === userId);
+                setIsOrganizer(meetingData.userId === parseInt(userId));
 
-                await joinMeeting();
-                await fetchAttendees();
-                setupSignalingChannel();
-                await initializeMedia();
+                // Fetch attendees
+                const attendeesResponse = await fetch(`https://localhost:7175/api/MeetingAttendees?meetingId=${meetingId}`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+
+                if (!attendeesResponse.ok) {
+                    throw new Error(`Failed to fetch attendees (${attendeesResponse.status})`);
+                }
+
+                const attendeesData = await attendeesResponse.json();
+
+                // Fetch user details for each attendee
+                const userIds = attendeesData.map(a => a.userId);
+                const usersResponse = await fetch(`https://localhost:7175/api/Users?ids=${userIds.join(',')}`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+
+                if (!usersResponse.ok) {
+                    throw new Error(`Failed to fetch user details (${usersResponse.status})`);
+                }
+
+                const usersData = await usersResponse.json();
+
+                // Merge attendee data with user details
+                const attendeesWithUserData = attendeesData.map(attendee => {
+                    const user = usersData.find(u => u.id === attendee.userId);
+                    return {
+                        ...attendee,
+                        firstName: user?.firstName || '',
+                        lastName: user?.lastName || '',
+                        email: user?.email || ''
+                    };
+                });
+
+                setAttendees(attendeesWithUserData);
+
+                // Fetch agenda items
+                const agendaResponse = await fetch(`https://localhost:7175/api/Agenda?meetingId=${meetingId}`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+
+                if (agendaResponse.ok) {
+                    const agendaData = await agendaResponse.json();
+                    // Sort by ItemNumber
+                    setAgendaItems(agendaData.sort((a, b) => {
+                        const aNum = parseInt(a.ItemNumber) || 0;
+                        const bNum = parseInt(b.ItemNumber) || 0;
+                        return aNum - bNum;
+                    }));
+                }
+
+                // Fetch action items
+                const actionsResponse = await fetch(`https://localhost:7175/api/Minutes?meetingId=${meetingId}`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+
+                if (actionsResponse.ok) {
+                    const actionsData = await actionsResponse.json();
+
+                    // Filter action items based on user role
+                    if (meetingData.userId === parseInt(userId)) {
+                        // If user is organizer, show all action items
+                        setActionItems(actionsData);
+                    } else {
+                        // If user is attendee, show only actions assigned to them
+                        const currentAttendee = attendeesWithUserData.find(a => a.userId === parseInt(userId));
+                        if (currentAttendee) {
+                            setActionItems(actionsData.filter(item => item.meetingAttendeeId === currentAttendee.id));
+                        } else {
+                            setActionItems([]);
+                        }
+                    }
+                }
 
                 setLoading(false);
             } catch (err) {
@@ -505,134 +142,569 @@ const Screen = () => {
         fetchMeetingData();
     }, [meetingId, userId]);
 
-    // Poll for attendees updates
-    useEffect(() => {
-        if (!loading && !error) {
-            pollIntervalRef.current = setInterval(fetchAttendees, 3000);
-            return () => clearInterval(pollIntervalRef.current);
-        }
-    }, [loading, error]);
+    const handleFormSubmit = async (e) => {
+        e.preventDefault();
+        setError(null);
 
-    // Initialize media when state changes
-    useEffect(() => {
-        initializeMedia();
-    }, [isVideoEnabled, isAudioEnabled]);
-
-    // Cleanup
-    useEffect(() => {
-        return () => {
-            Object.values(peerConnections).forEach(pc => pc.close());
-            if (signalingChannel) signalingChannel.close();
-            if (localStreamRef.current) {
-                localStreamRef.current.getTracks().forEach(track => track.stop());
-            }
-            if (screenShareRef.current?.srcObject) {
-                screenShareRef.current.srcObject.getTracks().forEach(track => track.stop());
-            }
-            if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
-        };
-    }, []);
-
-    // Fullscreen handling
-    const toggleFullScreen = () => {
-        if (!isFullScreen) {
-            document.documentElement.requestFullscreen?.().then(() => {
-                setIsFullScreen(true);
-            });
-        } else {
-            document.exitFullscreen?.().then(() => {
-                setIsFullScreen(false);
-            });
-        }
-    };
-
-    useEffect(() => {
-        const handleFullscreenChange = () => {
-            setIsFullScreen(!!document.fullscreenElement);
-        };
-
-        document.addEventListener('fullscreenchange', handleFullscreenChange);
-        return () => {
-            document.removeEventListener('fullscreenchange', handleFullscreenChange);
-        };
-    }, []);
-
-    // Control functions
-    const toggleAudio = async () => {
-        const newAudioState = !isAudioEnabled;
-        setIsAudioEnabled(newAudioState);
-        await updateAttendeeStatus({
-            hasAudio: newAudioState,
-            hasVideo: isVideoEnabled,
-            isHandRaised: isHandRaised
-        });
-        await initializeMedia();
-    };
-
-    const toggleVideo = async () => {
-        const newVideoState = !isVideoEnabled;
-        setIsVideoEnabled(newVideoState);
-        await updateAttendeeStatus({
-            hasAudio: isAudioEnabled,
-            hasVideo: newVideoState,
-            isHandRaised: isHandRaised
-        });
-        await initializeMedia();
-    };
-
-    const toggleHandRaise = async () => {
-        const newHandRaiseState = !isHandRaised;
-        setIsHandRaised(newHandRaiseState);
-        await updateAttendeeStatus({
-            hasAudio: isAudioEnabled,
-            hasVideo: isVideoEnabled,
-            isHandRaised: newHandRaiseState
-        });
-    };
-
-    const sendChatMessage = () => {
-        if (newMessage.trim()) {
-            setChatMessages([...chatMessages, {
-                id: Date.now(),
-                senderId: userId,
-                text: newMessage,
-                timestamp: new Date().toISOString(),
-                senderName: 'You'
-            }]);
-            setNewMessage('');
-        }
-    };
-
-    const leaveMeeting = async () => {
         try {
             const token = localStorage.getItem('accessToken');
-            await fetch(`https://localhost:7175/api/MeetingAttendees/leave`, {
-                method: 'PUT',
+            let url, method, payload;
+
+            if (activeTab === 'agenda') {
+                // Validate agenda form
+                if (!formData.Topic.trim()) {
+                    setError('Topic is required');
+                    return;
+                }
+                if (!formData.Description.trim()) {
+                    setError('Description is required');
+                    return;
+                }
+                if (!formData.TimeAllocation || parseInt(formData.TimeAllocation) <= 0) {
+                    setError('Time allocation must be greater than 0');
+                    return;
+                }
+
+                url = editingItem
+                    ? `https://localhost:7175/api/Agenda/${editingItem.id}`
+                    : 'https://localhost:7175/api/Agenda';
+                method = editingItem ? 'PUT' : 'POST';
+
+                payload = {
+                    topic: formData.Topic.trim(),
+                    description: formData.Description.trim(),
+                    timeAllocation: parseInt(formData.TimeAllocation),
+                    status: formData.Status,
+                    meetingId: parseInt(meetingId)
+                };
+
+                if (editingItem) {
+                    payload.id = editingItem.id;
+                    payload.itemNumber = editingItem.itemNumber || editingItem.ItemNumber;
+                } else {
+                    const nextItemNumber = agendaItems.length > 0
+                        ? String(Math.max(...agendaItems.map(item => parseInt(item.ItemNumber) || 0)) + 1)
+                        : '1';
+                    payload.itemNumber = nextItemNumber;
+                }
+            } else {
+                // Validate action form
+                if (!formData.AssignAction.trim()) {
+                    setError('Action description is required');
+                    return;
+                }
+                if (!formData.DueDate || isNaN(Date.parse(formData.DueDate))) {
+                    setError('Due date is missing or invalid');
+                    return;
+                }
+
+                if (!formData.MeetingAttendeeId) {
+                    setError('Please select an attendee');
+                    return;
+                }
+
+                // Check if organizer is trying to assign to themselves
+                const selectedAttendee = attendees.find(a => a.id === parseInt(formData.MeetingAttendeeId));
+                if (selectedAttendee && selectedAttendee.userId === parseInt(userId)) {
+                    setError('Organizer cannot assign actions to themselves');
+                    return;
+                }
+
+                // Validate date
+                const dueDateParsed = new Date(formData.DueDate);
+                if (isNaN(dueDateParsed.getTime()) || dueDateParsed < new Date('1753-01-01')) {
+                    setError('Due date is invalid or out of range (must be after 1753)');
+                    return;
+                }
+
+                url = editingItem
+                    ? `https://localhost:7175/api/Minutes/${editingItem.id}`
+                    : 'https://localhost:7175/api/Minutes';
+                method = editingItem ? 'PUT' : 'POST';
+
+                payload = {
+                    assignAction: formData.AssignAction.trim(),
+                    dueDate: dueDateParsed.toISOString(),
+                    meetingAttendeeId: parseInt(formData.MeetingAttendeeId),
+                    meetingId: parseInt(meetingId)
+                };
+
+                if (editingItem) {
+                    payload.id = editingItem.id;
+                }
+            }
+
+            const response = await fetch(url, {
+                method,
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({
-                    meetingId: meetingId,
-                    userId: userId
-                })
+                body: JSON.stringify(payload)
             });
 
-            // Cleanup
-            Object.values(peerConnections).forEach(pc => pc.close());
-            if (signalingChannel) signalingChannel.close();
-            if (localStreamRef.current) {
-                localStreamRef.current.getTracks().forEach(track => track.stop());
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(errorText || `Server error: ${response.status}`);
             }
-            if (screenShareRef.current?.srcObject) {
-                screenShareRef.current.srcObject.getTracks().forEach(track => track.stop());
-            }
-            if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
 
-            navigate('/');
+            // Only parse JSON if response has content
+            const responseText = await response.text();
+            let result = null;
+            if (responseText) {
+                try {
+                    result = JSON.parse(responseText);
+                } catch (parseError) {
+                    throw new Error('Invalid server response format');
+                }
+            }
+            if (!result) {
+                result = {
+                    ...payload,
+                    id: editingItem?.id || Math.max(...agendaItems.map(i => i?.id || 0), 0) + 1
+                };
+            }
+
+            // Update state based on active tab
+            if (activeTab === 'agenda') {
+                setAgendaItems(prevItems => {
+                    if (editingItem) {
+                        return prevItems.map(item =>
+                            item.id === result.id ? { ...item, ...result } : item
+                        );
+                    } else {
+                        const newItems = [...prevItems, result];
+                        return newItems.sort((a, b) => {
+                            const aNum = parseInt(a.ItemNumber || a.itemNumber) || 0;
+                            const bNum = parseInt(b.ItemNumber || b.itemNumber) || 0;
+                            return aNum - bNum;
+                        });
+                    }
+                });
+            } else {
+                setActionItems(prevItems => {
+                    if (editingItem) {
+                        return prevItems.map(item =>
+                            item.id === result.id ? { ...item, ...result } : item
+                        );
+                    } else {
+                        return [...prevItems, result];
+                    }
+                });
+            }
+
+            // Reset form
+            setShowForm(false);
+            setEditingItem(null);
+            setFormData({
+                Topic: '',
+                Description: '',
+                TimeAllocation: '',
+                Status: 'Pending',
+                AssignAction: '',
+                DueDate: '',
+                MeetingAttendeeId: ''
+            });
+
         } catch (err) {
-            console.error('Error leaving meeting:', err);
-            navigate('/');
+            console.error('Error submitting form:', err);
+            setError(err.message || 'An unexpected error occurred');
+        }
+    };
+
+    const handleInputChange = (e) => {
+        const { name, value } = e.target;
+        setFormData({
+            ...formData,
+            [name]: value
+        });
+    };
+
+    const toggleAgendaItem = (itemId) => {
+        setExpandedAgendaItem(expandedAgendaItem === itemId ? null : itemId);
+    };
+
+    const handleEditItem = (item) => {
+        if (activeTab === 'agenda') {
+            setFormData({
+                Topic: item.topic || item.Topic,
+                Description: item.description || item.Description,
+                TimeAllocation: item.timeAllocation || item.TimeAllocation,
+                Status: item.status || item.Status,
+                AssignAction: '',
+                DueDate: '',
+                MeetingAttendeeId: ''
+            });
+            setEditingItem(item);
+            setShowForm(true);
+        } else {
+            // Existing action items handling
+            let dueDate = '';
+            if (item.dueDate || item.DueDate) {
+                const dateObj = new Date(item.dueDate || item.DueDate);
+                if (!isNaN(dateObj.getTime())) {
+                    dueDate = dateObj.toISOString().split('T')[0];
+                }
+            }
+
+            setFormData({
+                Topic: '',
+                Description: '',
+                TimeAllocation: '',
+                Status: 'Pending',
+                AssignAction: item.assignAction || item.AssignAction,
+                DueDate: dueDate,
+                MeetingAttendeeId: item.meetingAttendeeId || item.MeetingAttendeeId
+            });
+            setEditingItem(item);
+            setShowForm(true);
+        }
+    };
+
+    const handleDeleteItem = async (itemId) => {
+        try {
+            const token = localStorage.getItem('accessToken');
+            if (!token) {
+                throw new Error('Authentication token missing');
+            }
+
+            const endpoint = activeTab === 'agenda'
+                ? `https://localhost:7175/api/Agenda/${itemId}`
+                : `https://localhost:7175/api/Minutes/${itemId}`;
+
+            const response = await fetch(endpoint, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(errorText || 'Failed to delete item');
+            }
+
+            if (activeTab === 'agenda') {
+                setAgendaItems(prev => prev.filter(item => item.id !== itemId));
+            } else {
+                setActionItems(prev => prev.filter(item => item.id !== itemId));
+            }
+        } catch (err) {
+            console.error('Error deleting item:', err);
+            setError(err.message || 'Failed to delete item');
+        }
+    };
+
+    const renderForm = () => {
+        if (activeTab === 'agenda') {
+            return (
+                <div className="form-container">
+                    <form onSubmit={handleFormSubmit} className="organizer-form">
+                        <h3>{editingItem ? 'Edit Agenda Item' : 'Add Agenda Item'}</h3>
+                        {error && <div className="error-message">{error}</div>}
+                        <div className="form-group">
+                            <label>Topic *</label>
+                            <input
+                                type="text"
+                                name="Topic"
+                                value={formData.Topic}
+                                onChange={handleInputChange}
+                                required
+                                placeholder="Enter topic title"
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label>Description *</label>
+                            <textarea
+                                name="Description"
+                                value={formData.Description}
+                                onChange={handleInputChange}
+                                required
+                                placeholder="Enter detailed description"
+                                rows="4"
+                            />
+                        </div>
+                        <div className="form-row">
+                            <div className="form-group">
+                                <label>Time Allocation (minutes) *</label>
+                                <input
+                                    type="number"
+                                    name="TimeAllocation"
+                                    value={formData.TimeAllocation}
+                                    onChange={handleInputChange}
+                                    required
+                                    min="1"
+                                    placeholder="e.g. 15"
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label>Status</label>
+                                <select
+                                    name="Status"
+                                    value={formData.Status}
+                                    onChange={handleInputChange}
+                                >
+                                    <option value="Pending">Pending</option>
+                                    <option value="In Progress">In Progress</option>
+                                    <option value="Completed">Completed</option>
+                                    <option value="Postponed">Postponed</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div className="form-buttons">
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setShowForm(false);
+                                    setEditingItem(null);
+                                    setError(null);
+                                }}
+                                className="secondary-button"
+                            >
+                                <X size={16} /> Cancel
+                            </button>
+                            <button type="submit" className="primary-button">
+                                <Check size={16} /> {editingItem ? 'Update' : 'Save'} Agenda Item
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            );
+        } else {
+            const assignableAttendees = editingItem
+                ? attendees // when editing, show everyone including the current assignee
+                : attendees.filter(attendee => attendee.userId !== parseInt(userId)); // when creating, exclude organizer
+
+            return (
+                <div className="form-container">
+                    <form onSubmit={handleFormSubmit} className="organizer-form">
+                        <h3>{editingItem ? 'Edit Action Item' : 'Assign Action Item'}</h3>
+                        {error && <div className="error-message">{error}</div>}
+                        <div className="form-group">
+                            <label>Action Description *</label>
+                            <textarea
+                                name="AssignAction"
+                                value={formData.AssignAction}
+                                onChange={handleInputChange}
+                                required
+                                placeholder="Describe the action to be taken"
+                                rows="4"
+                            />
+                        </div>
+                        <div className="form-row">
+                            <div className="form-group">
+                                <label>Due Date *</label>
+                                <input
+                                    type="date"
+                                    name="DueDate"
+                                    value={formData.DueDate}
+                                    onChange={handleInputChange}
+                                    required
+                                    min={new Date().toISOString().split('T')[0]}
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label>Assign To *</label>
+                                <select
+                                    name="MeetingAttendeeId"
+                                    value={formData.MeetingAttendeeId}
+                                    onChange={handleInputChange}
+                                    required
+                                    disabled={!!editingItem}
+                                >
+                                    <option value="">Select attendee</option>
+                                    {assignableAttendees.map(attendee => (
+                                        <option key={attendee.id} value={attendee.id}>
+                                            {attendee.firstName} {attendee.lastName} ({attendee.email})
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                        </div>
+                        <div className="form-buttons">
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setShowForm(false);
+                                    setEditingItem(null);
+                                    setError(null);
+                                }}
+                                className="secondary-button"
+                            >
+                                <X size={16} /> Cancel
+                            </button>
+                            <button type="submit" className="primary-button">
+                                <Check size={16} /> {editingItem ? 'Update' : 'Assign'} Action
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            );
+        }
+    };
+
+    const renderContent = () => {
+        if (activeTab === 'agenda') {
+            return (
+                <div className="content-section">
+                    <div className="section-header">
+                        <h2>Meeting Agenda</h2>
+                        {isOrganizer && (
+                            <button
+                                onClick={() => {
+                                    setEditingItem(null);
+                                    setShowForm(true);
+                                }}
+                                className="add-button"
+                            >
+                                <Plus size={16} /> Add Item
+                            </button>
+                        )}
+                    </div>
+                    {agendaItems.length === 0 ? (
+                        <p className="no-items">No agenda items have been added yet</p>
+                    ) : (
+                        <div className="agenda-items-container">
+                            {agendaItems.map(item => (
+                                <div
+                                    key={item.id}
+                                    className={`agenda-item ${expandedAgendaItem === item.id ? 'expanded' : ''}`}
+                                >
+                                    <div
+                                        className="item-header"
+                                        onClick={() => toggleAgendaItem(item.id)}
+                                    >
+                                        <div className="item-number-status">
+                                            <span className="item-number">{item.itemNumber || item.ItemNumber}.</span>
+                                            <span className={`item-status ${(item.status || item.Status).toLowerCase().replace(' ', '-')}`}>
+                                                {item.status || item.Status}
+                                            </span>
+                                        </div>
+                                        <div className="item-topic-time">
+                                            <span className="item-topic">{item.topic || item.Topic}</span>
+                                            <span className="item-time">{item.timeAllocation || item.TimeAllocation} min</span>
+                                        </div>
+                                        <div className="expand-icon">
+                                            {expandedAgendaItem === item.id ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                                        </div>
+                                    </div>
+                                    {expandedAgendaItem === item.id && (
+                                        <div className="item-details">
+                                            <p className="item-description">{item.description || item.Description}</p>
+                                            <div className="item-meta">
+                                                <span>Added: {new Date(item.createdAt || item.CreatedAt).toLocaleString()}</span>
+                                                {isOrganizer && (
+                                                    <div className="item-actions">
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleEditItem(item);
+                                                            }}
+                                                            className="edit-button"
+                                                        >
+                                                            <Edit size={16} /> Edit
+                                                        </button>
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleDeleteItem(item.id);
+                                                            }}
+                                                            className="delete-button"
+                                                        >
+                                                            <Trash2 size={16} /> Delete
+                                                        </button>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            );
+        } else {
+            return (
+                <div className="content-section">
+                    <div className="section-header">
+                        <h2>Action Items</h2>
+                        {isOrganizer && (
+                            <button
+                                onClick={() => {
+                                    setEditingItem(null);
+                                    setShowForm(true);
+                                }}
+                                className="add-button"
+                            >
+                                <Plus size={16} /> Assign Action
+                            </button>
+                        )}
+                    </div>
+                    {actionItems.length === 0 ? (
+                        <p className="no-items">
+                            {isOrganizer
+                                ? "No action items have been assigned yet"
+                                : "No action items have been assigned to you"}
+                        </p>
+                    ) : (
+                        <div className="action-items-container">
+                            {actionItems.map(item => {
+                                const assignee = attendees.find(a => a.id === (item.meetingAttendeeId || item.MeetingAttendeeId));
+                                const dueDate = new Date(item.dueDate || item.DueDate);
+                                const isOverdue = dueDate < new Date() && (item.status || 'Pending') !== 'Completed';
+                                const createdAt = new Date(item.createdAt || item.CreatedAt);
+
+                                return (
+                                    <div key={item.id} className={`action-item ${isOverdue ? 'overdue' : ''}`}>
+                                        <div className="action-description">
+                                            <p>{item.assignAction || item.AssignAction}</p>
+                                        </div>
+                                        <div className="action-details">
+                                            <div className="assignee-info">
+                                                <User size={14} />
+                                                {assignee ? (
+                                                    <span>{assignee.firstName} {assignee.lastName}</span>
+                                                ) : (
+                                                    <span>Unassigned</span>
+                                                )}
+                                            </div>
+                                            <div className="due-date">
+                                                <span>Due: {!isNaN(dueDate.getTime()) ? dueDate.toLocaleDateString() : 'Invalid Date'}</span>
+                                                {isOverdue && <span className="overdue-badge">Overdue</span>}
+                                            </div>
+                                        </div>
+                                        <div className="action-meta">
+                                            <span>Assigned: {!isNaN(createdAt.getTime()) ? createdAt.toLocaleString() : 'Invalid Date'}</span>
+                                            {(isOrganizer || (assignee && assignee.userId === parseInt(userId))) && (
+                                                <div className="action-actions">
+                                                    {isOrganizer && (
+                                                        <button
+                                                            onClick={() => handleEditItem(item)}
+                                                            className="edit-button"
+                                                        >
+                                                            <Edit size={16} /> Edit
+                                                        </button>
+                                                    )}
+                                                    {isOrganizer && (
+                                                        <button
+                                                            onClick={() => handleDeleteItem(item.id)}
+                                                            className="delete-button"
+                                                        >
+                                                            <Trash2 size={16} /> Delete
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            )}
+
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
+                </div>
+            );
         }
     };
 
@@ -640,7 +712,7 @@ const Screen = () => {
         return (
             <div className="screen-loading">
                 <div className="loading-spinner"></div>
-                <p>Joining meeting...</p>
+                <p>Loading meeting data...</p>
             </div>
         );
     }
@@ -657,257 +729,37 @@ const Screen = () => {
     }
 
     return (
-        <div className={`screen-container ${isFullScreen ? 'fullscreen' : ''}`}>
+        <div className="organizer-container">
             <header className="meeting-header">
                 <div className="meeting-info">
                     <h1>{meeting?.title || `Meeting: ${meetingId}`}</h1>
-                    <span className="participant-count">
-                        {attendees.length + 1} participant{attendees.length !== 0 ? 's' : ''}
-                    </span>
-                    {isOrganizer && <span className="organizer-badge">Organizer</span>}
-                </div>
-                <div className="header-controls">
-                    <button
-                        onClick={() => setShowParticipants(!showParticipants)}
-                        className={`control-button ${showParticipants ? 'active' : ''}`}
-                        title="Participants"
-                    >
-                        <Users size={20} />
-                    </button>
-                    <button
-                        onClick={() => setShowChat(!showChat)}
-                        className={`control-button ${showChat ? 'active' : ''}`}
-                        title="Chat"
-                    >
-                        <MessageSquare size={20} />
-                    </button>
-                    <button onClick={toggleFullScreen} className="fullscreen-button">
-                        {isFullScreen ? <Minimize size={20} /> : <Maximize size={20} />}
-                    </button>
+                    <div className="meeting-meta">
+                        <span className="meeting-date">
+                            {meeting?.meetingDate && new Date(meeting.meetingDate).toLocaleDateString()}
+                        </span>
+                        {isOrganizer && <span className="organizer-badge">Organizer</span>}
+                    </div>
                 </div>
             </header>
 
-            <main className="meeting-content">
-                <div className="video-grid">
-                    {isScreenSharing ? (
-                        <div className="screen-share-container">
-                            <video
-                                ref={screenShareRef}
-                                autoPlay
-                                playsInline
-                                className="screen-share-video"
-                            />
-                            <div className="local-video-overlay">
-                                {isVideoEnabled ? (
-                                    <video
-                                        ref={localVideoRef}
-                                        autoPlay
-                                        playsInline
-                                        muted
-                                        className="video-element"
-                                    />
-                                ) : (
-                                    <div className="video-placeholder">
-                                        <div className="user-avatar">YOU</div>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    ) : (
-                        <>
-                            <div className="video-tile local-video">
-                                {isVideoEnabled ? (
-                                    <video
-                                        ref={localVideoRef}
-                                        autoPlay
-                                        playsInline
-                                        muted
-                                        className="video-element"
-                                    />
-                                ) : (
-                                    <div className="video-placeholder">
-                                        <div className="user-avatar">YOU</div>
-                                    </div>
-                                )}
-                                <div className="video-overlay">
-                                    <span className="user-name">
-                                        You {isHandRaised && '🙋'}
-                                    </span>
-                                    <div className="media-status">
-                                        {!isAudioEnabled && <MicOff size={16} />}
-                                        {!isVideoEnabled && <VideoOff size={16} />}
-                                    </div>
-                                </div>
-                                {mediaError && (
-                                    <div className="media-error">
-                                        <small>{mediaError}</small>
-                                    </div>
-                                )}
-                            </div>
+            <div className="organizer-tabs">
+                <button
+                    onClick={() => setActiveTab('agenda')}
+                    className={`tab-button ${activeTab === 'agenda' ? 'active' : ''}`}
+                >
+                    <List size={18} /> Agenda
+                </button>
+                <button
+                    onClick={() => setActiveTab('actions')}
+                    className={`tab-button ${activeTab === 'actions' ? 'active' : ''}`}
+                >
+                    <ClipboardList size={18} /> Actions
+                </button>
+            </div>
 
-                            {attendees.map(attendee => {
-                                const remoteStream = remoteStreams[attendee.userId];
-                                const hasVideo = remoteStream && attendee.hasVideo;
-
-                                return (
-                                    <div key={attendee.id} className="video-tile">
-                                        {hasVideo ? (
-                                            <video
-                                                ref={el => {
-                                                    if (el && remoteStream) {
-                                                        el.srcObject = remoteStream;
-                                                        el.onloadedmetadata = () => el.play().catch(console.error);
-                                                    }
-                                                }}
-                                                autoPlay
-                                                playsInline
-                                                className="video-element"
-                                            />
-                                        ) : (
-                                            <div className="video-placeholder">
-                                                <div className="user-avatar">
-                                                    {`${attendee.firstName?.[0] || ''}${attendee.lastName?.[0] || ''}`.toUpperCase() || '??'}
-                                                </div>
-                                            </div>
-                                        )}
-                                        <div className="video-overlay">
-                                            <span className="user-name">
-                                                {attendee.firstName} {attendee.lastName} {attendee.isHandRaised && '🙋'}
-                                            </span>
-                                            <div className="media-status">
-                                                {!attendee.hasAudio && <MicOff size={16} />}
-                                                {!attendee.hasVideo && <VideoOff size={16} />}
-                                            </div>
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                        </>
-                    )}
-                </div>
-
-                {showParticipants && (
-                    <aside className="side-panel participants-panel">
-                        <div className="panel-header">
-                            <h3>Participants ({attendees.length + 1})</h3>
-                            <button
-                                onClick={() => setShowParticipants(false)}
-                                className="close-panel"
-                            >
-                                <X size={18} />
-                            </button>
-                        </div>
-                        <div className="participants-container">
-                            <div className="participant-item current-user">
-                                <div className="participant-info">
-                                    <span className="participant-name">You</span>
-                                    <div className="participant-status">
-                                        {!isAudioEnabled && <MicOff size={14} />}
-                                        {!isVideoEnabled && <VideoOff size={14} />}
-                                        {isHandRaised && <span className="hand-raised">🙋</span>}
-                                    </div>
-                                </div>
-                            </div>
-                            {attendees.map(attendee => (
-                                <div key={attendee.id} className="participant-item">
-                                    <div className="participant-info">
-                                        <span className="participant-name">
-                                            {attendee.firstName} {attendee.lastName}
-                                        </span>
-                                        <div className="participant-status">
-                                            {!attendee.hasAudio && <MicOff size={14} />}
-                                            {!attendee.hasVideo && <VideoOff size={14} />}
-                                            {attendee.isHandRaised && <span className="hand-raised">🙋</span>}
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </aside>
-                )}
-
-                {showChat && (
-                    <aside className="side-panel chat-panel">
-                        <div className="panel-header">
-                            <h3>Meeting Chat</h3>
-                            <button
-                                onClick={() => setShowChat(false)}
-                                className="close-panel"
-                            >
-                                <X size={18} />
-                            </button>
-                        </div>
-                        <div className="chat-messages">
-                            {chatMessages.length === 0 ? (
-                                <p className="no-messages">No messages yet</p>
-                            ) : (
-                                chatMessages.map(message => (
-                                    <div key={message.id} className="message">
-                                        <div className="message-sender">
-                                            {message.senderName || 'You'}:
-                                        </div>
-                                        <div className="message-text">{message.text}</div>
-                                    </div>
-                                ))
-                            )}
-                        </div>
-                        <div className="chat-input">
-                            <input
-                                type="text"
-                                value={newMessage}
-                                onChange={(e) => setNewMessage(e.target.value)}
-                                placeholder="Type a message..."
-                                onKeyPress={(e) => e.key === 'Enter' && sendChatMessage()}
-                            />
-                            <button onClick={sendChatMessage}>Send</button>
-                        </div>
-                    </aside>
-                )}
+            <main className="organizer-content">
+                {showForm ? renderForm() : renderContent()}
             </main>
-
-            <footer className="meeting-footer">
-                <button
-                    onClick={toggleAudio}
-                    className={`control-button ${isAudioEnabled ? 'active' : 'inactive'}`}
-                    title={isAudioEnabled ? 'Mute' : 'Unmute'}
-                >
-                    {isAudioEnabled ? <Mic size={20} /> : <MicOff size={20} />}
-                </button>
-                <button
-                    onClick={toggleVideo}
-                    className={`control-button ${isVideoEnabled ? 'active' : 'inactive'}`}
-                    title={isVideoEnabled ? 'Stop Video' : 'Start Video'}
-                >
-                    {isVideoEnabled ? <Video size={20} /> : <VideoOff size={20} />}
-                </button>
-                <button
-                    onClick={toggleScreenShare}
-                    className={`control-button ${isScreenSharing ? 'active' : ''}`}
-                    title={isScreenSharing ? 'Stop Sharing' : 'Share Screen'}
-                >
-                    <Share2 size={20} />
-                </button>
-                <button
-                    onClick={toggleHandRaise}
-                    className={`control-button ${isHandRaised ? 'raised active' : ''}`}
-                    title={isHandRaised ? 'Lower Hand' : 'Raise Hand'}
-                >
-                    <Hand size={20} />
-                </button>
-                <button
-                    className="control-button"
-                    title="More Options"
-                >
-                    ⋯
-                </button>
-                <button
-                    onClick={leaveMeeting}
-                    className="control-button leave-button"
-                    title="Leave Meeting"
-                >
-                    <Phone size={20} />
-                </button>
-            </footer>
         </div>
     );
 };

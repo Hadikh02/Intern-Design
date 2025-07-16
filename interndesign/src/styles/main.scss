@@ -81,29 +81,43 @@ body {
                 text-transform: lowercase;
             }
 
-            .profileButton {
+            .profileButtons {
+                display: flex;
+                gap: 6px;
                 margin-top: 10px;
-                padding: 6px 12px;
-                background-color: $green;
-                color: white;
-                border: none;
-                border-radius: 4px;
-                cursor: pointer;
-                font-size: 12px;
-                font-weight: 500;
-                transition: all 0.3s ease;
-                opacity: 1;
-                display: block;
-                width: auto;
-                position: relative;
-                left: 0;
-                top: 0;
-                transform: none;
-                box-shadow: none;
-                z-index: 1;
 
-                &:hover {
-                    background-color: darken($green, 10%);
+                .profileButton, .dashboardButton {
+                    padding: 6px 8px;
+                    border-radius: 4px;
+                    font-size: 10px;
+                    font-weight: 500;
+                    cursor: pointer;
+                    transition: all 0.2s;
+                    height: 28px;
+                    min-width: 28px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    border: none;
+                    white-space: nowrap;
+
+                    &.profileButton {
+                        background-color: #3b82f6;
+                        color: white;
+
+                        &:hover {
+                            background-color: #2563eb;
+                        }
+                    }
+
+                    &.dashboardButton {
+                        background-color: #10b981;
+                        color: white;
+
+                        &:hover {
+                            background-color: #059669;
+                        }
+                    }
                 }
             }
         }
@@ -174,25 +188,23 @@ body {
             height: 0;
             overflow: hidden;
 
-            .profileButton {
-                opacity: 1 !important;
+            .profileButtons {
                 position: absolute;
                 left: 5.5rem;
                 top: 50%;
                 transform: translateY(-50%);
-                white-space: nowrap;
                 z-index: 10;
                 box-shadow: 0 2px 5px rgba(0,0,0,0.1);
                 margin-top: 0;
-                width: auto;
-                display: block;
+                display: flex;
+                gap: 6px;
             }
         }
 
         .profileCircle {
             flex-shrink: 0;
         }
-        // Override for mobile screens
+
         @media screen and (max-width: 768px) {
             flex-direction: column;
             align-items: center;
@@ -207,13 +219,13 @@ body {
                     display: none;
                 }
 
-                .profileButton {
+                .profileButtons {
                     position: static;
                     transform: none;
                     margin-top: 10px;
-                    font-size: 10px;
-                    padding: 4px 8px;
-                    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+                    flex-direction: column;
+                    align-items: center;
+                    gap: 4px;
                 }
             }
 
@@ -260,18 +272,16 @@ body {
                     display: none;
                 }
 
-                .profileButton {
+                .profileButtons {
                     opacity: 1 !important;
                     position: static;
                     transform: none;
-                    white-space: nowrap;
                     z-index: 10;
-                    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+                    box-shadow: none;
                     margin-top: 10px;
-                    width: auto;
-                    display: block;
-                    font-size: 10px;
-                    padding: 4px 8px;
+                    flex-direction: column;
+                    align-items: center;
+                    gap: 4px;
                 }
             }
 

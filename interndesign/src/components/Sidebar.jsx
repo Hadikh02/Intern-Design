@@ -1,6 +1,6 @@
 ﻿import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Home, Settings, Calendar, LogIn, LogOut } from "lucide-react";
+import { Home, Settings, Calendar, LogIn, LogOut, User, LayoutDashboard } from "lucide-react";
 import Logo from "../assets/Logo.jpg";
 
 const Sidebar = () => {
@@ -13,27 +13,83 @@ const Sidebar = () => {
         email: "",
         firstName: "",
         lastName: "",
-        initials: ""
+        initials: "",
+        isAdmin: false
     });
 
-    // Extract user info from JWT token
-    const getUserInfoFromToken = () => {
+    useEffect(() => {
+        const handleProfileUpdate = (e) => {
+            if (isAuthenticated) {
+                // Option 1: Re-fetch fresh data (slower but ensures consistency)
+                fetchUserInfo();
+
+                // Option 2: Update directly from event (faster, but assumes data is correct)
+                if (e.detail) {
+                    setUserInfo(prev => ({
+                        ...prev,
+                        firstName: e.detail.firstName,
+                        lastName: e.detail.lastName,
+                        email: e.detail.email,
+                        initials: `${e.detail.firstName[0]}${e.detail.lastName[0]}`.toUpperCase()
+                    }));
+                }
+            }
+        };
+
+        window.addEventListener('profileUpdated', handleProfileUpdate);
+        return () => window.removeEventListener('profileUpdated', handleProfileUpdate);
+    }, [isAuthenticated])
+
+    // Extract user role from JWT token (role doesn't change frequently)
+    const getUserRoleFromToken = () => {
         const token = localStorage.getItem("accessToken");
-        if (!token) return null;
+        if (!token) return { isAdmin: false };
         try {
             const payload = JSON.parse(atob(token.split('.')[1]));
-            const email = payload["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"] || "";
-            const nameParts = email.split("@")[0]?.split(".") || [];
-            const firstName = nameParts[0] || "";
-            const lastName = nameParts[1] || "";
-            const initials = `${firstName[0] || ""}${lastName[0] || ""}`.toUpperCase();
-            return { email, firstName, lastName, initials };
+            const isAdmin = payload["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"] === "Admin";
+            return { isAdmin };
         } catch {
-            return null;
+            return { isAdmin: false };
         }
     };
 
-    // Check authentication status and set user info
+    // Fetch fresh user data from API
+    const fetchUserInfo = async () => {
+        const token = localStorage.getItem("accessToken");
+        if (!token) return;
+
+        try {
+            const response = await fetch('https://localhost:7175/api/Users/me', {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+            });
+
+            if (response.ok) {
+                const userData = await response.json();
+                const { isAdmin } = getUserRoleFromToken();
+
+                const normalizedData = {
+                    email: userData.email || userData.Email || "",
+                    firstName: userData.firstName || userData.FirstName || "",
+                    lastName: userData.lastName || userData.LastName || "",
+                    isAdmin
+                };
+
+                const initials = `${normalizedData.firstName[0] || ""}${normalizedData.lastName[0] || ""}`.toUpperCase();
+
+                setUserInfo({
+                    ...normalizedData,
+                    initials
+                });
+            }
+        } catch (error) {
+            console.error('Error fetching user info:', error);
+        }
+    };
+
+    // Check authentication status and fetch user info
     useEffect(() => {
         const checkAuthStatus = () => {
             const accessToken = localStorage.getItem("accessToken");
@@ -42,27 +98,38 @@ const Sidebar = () => {
             setIsAuthenticated(authenticated);
 
             if (authenticated) {
-                const info = getUserInfoFromToken();
-                if (info) setUserInfo(info);
+                fetchUserInfo();
             } else {
                 setUserInfo({
                     email: "",
                     firstName: "",
                     lastName: "",
-                    initials: ""
+                    initials: "",
+                    isAdmin: false
                 });
             }
         };
 
         checkAuthStatus();
         window.addEventListener('storage', checkAuthStatus);
-        const interval = setInterval(checkAuthStatus, 1000);
+
+        // Listen for profile updates (custom event)
+        const handleProfileUpdate = () => {
+            if (isAuthenticated) {
+                fetchUserInfo();
+            }
+        };
+        window.addEventListener('profileUpdated', handleProfileUpdate);
+
+        // Check periodically, but less frequently
+        const interval = setInterval(checkAuthStatus, 5000);
 
         return () => {
             window.removeEventListener('storage', checkAuthStatus);
+            window.removeEventListener('profileUpdated', handleProfileUpdate);
             clearInterval(interval);
         };
-    }, []);
+    }, [isAuthenticated]);
 
     useEffect(() => {
         const checkIfMobile = () => setIsMobile(window.innerWidth <= 768);
@@ -157,7 +224,10 @@ const Sidebar = () => {
         ];
 
         if (isAuthenticated) {
-            return [...baseItems, { label: "Logout", icon: <LogOut size={18} />, path: "/logout" }];
+            return [
+                ...baseItems,
+                { label: "Logout", icon: <LogOut size={18} />, path: "/logout" }
+            ];
         } else {
             return [...baseItems, { label: "Login", icon: <LogIn size={18} />, path: "/login" }];
         }
@@ -178,12 +248,22 @@ const Sidebar = () => {
                     <div className="profileContents">
                         <p className="name">Hello, {userInfo.firstName}</p>
                         <p>{userInfo.email}</p>
-                        <button
-                            className="profileButton"
-                            onClick={() => handleNavigation("/profile")}
-                        >
-                            View Profile
-                        </button>
+                        <div className="profileButtons">
+                            <button
+                                className="profileButton"
+                                onClick={() => handleNavigation("/profile")}
+                            >
+                                View Profile
+                            </button>
+                            {userInfo.isAdmin && (
+                                <button
+                                    className="dashboardButton"
+                                    onClick={() => handleNavigation("/dashBoard")}
+                                >
+                                    Dashboard
+                                </button>
+                            )}
+                        </div>
                     </div>
                 </div>
             )}

@@ -99,6 +99,11 @@
     gap: 2rem;
     margin-bottom: 2.5rem;
 }
+.error-message {
+    margin-top: 8px; /* or any value you prefer, e.g., 0.5rem */
+    color: red; /* assuming you want the error text to be red */
+    font-size: 0.875rem;
+}
 
 .form-label,
 .form-label-icon {
@@ -184,7 +189,7 @@
     border-radius: 20px;
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.1);
     z-index: 50;
-    max-height: 240px;
+    max-height: 100px;
     overflow-y: auto;
     animation: fadeInUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -237,6 +242,7 @@
     flex-wrap: wrap;
     gap: 0.875rem;
     margin-top: 1.25rem;
+
 }
 
 .attendee-tag {
@@ -734,3 +740,148 @@
         border-radius: 16px;
     }
 }
+/* Add these to your RoomBooking.css file */
+.notification-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.notification-modal {
+    background: white;
+    border-radius: 8px;
+    padding: 24px;
+    max-width: 500px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+}
+
+.notification-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #e5e5e5;
+}
+
+    .notification-modal-header h2 {
+        margin: 0;
+        color: #333;
+        font-size: 20px;
+    }
+
+.modal-close-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #666;
+    padding: 4px;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+    .modal-close-btn:hover {
+        background-color: #f0f0f0;
+    }
+
+.notification-form-group {
+    margin-bottom: 16px;
+}
+
+.notification-form-label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #333;
+}
+
+.notification-form-input, .notification-form-textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    transition: border-color 0.2s;
+}
+
+    .notification-form-input:focus, .notification-form-textarea:focus {
+        outline: none;
+        border-color: #007bff;
+    }
+
+.notification-form-textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+.notification-attendees-info {
+    background-color: #f8f9fa;
+    padding: 12px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+}
+
+    .notification-attendees-info p {
+        margin: 0 0 8px 0;
+        color: #666;
+    }
+
+    .notification-attendees-info ul {
+        margin: 0;
+        padding-left: 20px;
+    }
+
+    .notification-attendees-info li {
+        margin-bottom: 4px;
+        color: #555;
+        font-size: 14px;
+    }
+
+.notification-button-group {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+}
+
+    .notification-button-group .btn {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background-color 0.2s;
+    }
+
+    .notification-button-group .btn-secondary {
+        background-color: #6c757d;
+        color: white;
+    }
+
+        .notification-button-group .btn-secondary:hover {
+            background-color: #5a6268;
+        }
+
+    .notification-button-group .btn-primary {
+        background-color: #007bff;
+        color: white;
+    }
+
+        .notification-button-group .btn-primary:hover {
+            background-color: #0056b3;
+        }
+
+    .notification-button-group .btn:disabled {
+        background-color: #6c757d;
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
